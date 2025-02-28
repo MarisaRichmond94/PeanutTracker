@@ -1,6 +1,7 @@
+import { Layout } from '@components';
 import { useGlobal } from '@contexts';
-import { Page } from '@types';
 import { ChangingPage, FeedingPage, GrowthPage, HomePage, LandingPage, NotesPage, ProfilePage, ProgressPage, SleepPage } from '@pages';
+import { Page } from '@types';
 
 export const App = () => {
   const { page } = useGlobal();
@@ -19,5 +20,11 @@ export const App = () => {
     }
   };
 
-  return getPage();
+  return page === Page.LANDING
+    ? getPage()
+    : (
+      <Layout>
+        {getPage()}
+      </Layout>
+    );
 };
