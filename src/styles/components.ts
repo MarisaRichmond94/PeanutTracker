@@ -1,5 +1,10 @@
-import { IconButton, styled, Typography } from '@mui/material';
+import { Button, IconButton, styled, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
+
+export const SecondaryContainedButton = styled(Button)(({ theme }) => ({
+  backgroundColor: theme.palette.secondary.main,
+  color: 'white',
+}));
 
 export const WhiteIconButtonContainer = styled(x.div)<{ isActive: boolean }>(({ isActive }) => ({
   display: 'flex',
