@@ -1,9 +1,24 @@
-import { Button, IconButton, styled, Typography } from '@mui/material';
+import { Button, IconButton, styled, TextField, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
+
+export const LayoutComponentContainer = styled(x.div)`
+  align-items: center;
+  background-color: black;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 20px;
+`;
 
 export const SecondaryContainedButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.secondary.main,
   color: 'white',
+}));
+
+export const WhiteButton = styled(Button)(() => ({
+  color: 'white',
+  '&:hover': {
+    color: '#b5ead7',
+  },
 }));
 
 export const WhiteIconButtonContainer = styled(x.div)<{ isActive: boolean }>(({ isActive }) => ({
@@ -34,3 +49,7 @@ export const WhiteIconText = styled(Typography)<{ isActive: boolean }>(({ isActi
   color: isActive ? '#b5ead7' : 'white',
   padding: 0,
 }));
+
+export const WhiteTextField = styled(TextField)`
+  background: white;
+`
