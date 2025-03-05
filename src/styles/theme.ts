@@ -57,6 +57,14 @@ export const theme = createTheme({
         },
       },
     },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#232332',
+          color: 'white',
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {

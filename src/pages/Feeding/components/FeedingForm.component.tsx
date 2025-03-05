@@ -9,7 +9,11 @@ import { createNewFeeding } from '@services';
 import { WhiteButton } from '@styles';
 import { toCapitalCase } from '@utils';
 
-export const FeedingForm = () => {
+type FeedingFormProps = {
+  onSuccess: () => void;
+}
+
+export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   const [amount, setAmount] = useState<number | undefined>();
   const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
   const [duration, setDuration] = useState<number | undefined>();
@@ -71,6 +75,7 @@ export const FeedingForm = () => {
     }
     clearState();
     setIsFormExpanded(false);
+    onSuccess();
   };
 
   const onToggleFormState =

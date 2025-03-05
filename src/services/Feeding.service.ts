@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, query, Timestamp, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, Timestamp, updateDoc, where } from 'firebase/firestore';
 
 import { db } from '@firebase';
 import { Feeding } from '@models';
@@ -13,18 +13,24 @@ export const createNewFeeding = async (feeding: Omit<Feeding, 'id'>) => {
 };
 
 export const getFeedings = async (): Promise<Feeding[]> => {
-  const snapshot = await getDocs(feedingCollection);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Feeding[];
+  try {
+    const q = query(feedingCollection, orderBy('timestamp', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Feeding[];
+  } catch (error) {
+    console.error('Error fetching feedings:', error);
+    throw error;
+  }
 };
 
 export const getFeedingsInRange = async (startDate: Date, endDate: Date): Promise<Feeding[]> => {
   const startTimestamp = Timestamp.fromDate(startDate);
   const endTimestamp = Timestamp.fromDate(endDate);
 
-  const q = query(feedingCollection, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp));
+  const q = query(feedingCollection, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp), orderBy('timestamp', 'desc'));
   const snapshot = await getDocs(q);
 
   return snapshot.docs.map((doc) => ({
