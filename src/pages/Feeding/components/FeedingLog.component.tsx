@@ -142,7 +142,6 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
               value={updatedDuration}
             />
           } />
-
         }
         {
           isBreastFeeding &&
