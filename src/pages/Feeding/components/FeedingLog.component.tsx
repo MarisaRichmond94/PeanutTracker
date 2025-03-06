@@ -1,8 +1,9 @@
 import { Box, Button, Card, CardActions, CardContent, Divider, FormControl, FormHelperText, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { isNil } from 'lodash';
-import { ChangeEvent, ReactNode, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 
+import { EditLogRow, LogRow } from '@components';
 import { Feeding, FeedingMethod, FeedingSide } from '@models';
 import { deleteFeeding, updateFeeding } from '@services';
 import { formatTimestamp, toCapitalCase } from '@utils';
@@ -228,28 +229,3 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
     </Box>
   );
 };
-
-type EditLogRowProps = {
-  field: string;
-  value: ReactNode;
-}
-
-const EditLogRow = ({ field, value }: EditLogRowProps) => (
-  <x.div display='flex' gap='5px'>
-    <Typography color='secondary'><b>{`${field}:`}</b></Typography>
-    {value}
-  </x.div>
-);
-
-type LogRowProps = {
-  field: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value: any;
-}
-
-const LogRow = ({ field, value }: LogRowProps) => (
-  <x.div display='flex' gap='5px'>
-    <Typography color='secondary'><b>{`${field}:`}</b></Typography>
-    <Typography>{value}</Typography>
-  </x.div>
-);

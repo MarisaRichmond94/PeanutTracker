@@ -1,11 +1,12 @@
-import { Box, Button, Card, CardActions, CardContent, Divider, FormControl, FormHelperText, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardActions, CardContent, FormControl, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { isNil } from 'lodash';
-import { ChangeEvent, ReactNode, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 
+import { EditLogRow, LogRow } from '@components';
 import { Sleep, SleepLocation, SleepType } from '@models';
 import { deleteSleep, updateSleep } from '@services';
-import { formatDate, formatTimestamp, toCapitalCase } from '@utils';
+import { formatDate, toCapitalCase } from '@utils';
 
 interface SleepLogProps {
   sleep: Sleep;
@@ -14,7 +15,6 @@ interface SleepLogProps {
 
 export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
   const { id, endTime, duration, location, notes, startTime, type } = sleep;
-  // const isBreastSleep = method === SleepMethod.BREAST;
 
   const [isInEditMode, setIsInEditMode] = useState(false);
   const [updatedDuration, setUpdatedDuration] = useState<number | undefined>(duration);
@@ -178,28 +178,3 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
     </Box>
   );
 };
-
-type EditLogRowProps = {
-  field: string;
-  value: ReactNode;
-}
-
-const EditLogRow = ({ field, value }: EditLogRowProps) => (
-  <x.div display='flex' gap='5px'>
-    <Typography color='secondary'><b>{`${field}:`}</b></Typography>
-    {value}
-  </x.div>
-);
-
-type LogRowProps = {
-  field: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value: any;
-}
-
-const LogRow = ({ field, value }: LogRowProps) => (
-  <x.div display='flex' gap='5px'>
-    <Typography color='secondary'><b>{`${field}:`}</b></Typography>
-    <Typography>{value}</Typography>
-  </x.div>
-);
