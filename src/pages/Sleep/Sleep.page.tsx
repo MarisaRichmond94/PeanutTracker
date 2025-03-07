@@ -36,7 +36,7 @@ export const SleepPage = () => {
       <x.div margin='20px 0'>
         <x.div display='flex' flexDirection='column' gap='10px' marginBottom='15px'>
           <x.div display='flex' justifyContent='center'>
-            <Typography variant='h5'><b>Past Sleep Logs</b></Typography>
+            <Typography variant='h5'><b>Sleep Logs</b></Typography>
           </x.div>
           <Divider sx={{ borderColor: 'white' }} />
         </x.div>

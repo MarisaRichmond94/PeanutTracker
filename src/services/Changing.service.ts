@@ -26,9 +26,7 @@ export const getChangings = async (): Promise<Changing[]> => {
   }
 };
 
-export const getChangingsInRange = async (startDate: Date, endDate: Date): Promise<Changing[]> => {
-  const startTimestamp = Timestamp.fromDate(startDate);
-  const endTimestamp = Timestamp.fromDate(endDate);
+export const getChangingsInRange = async (startTimestamp: string, endTimestamp: string): Promise<Changing[]> => {
 
   const q = query(changingCollection, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp), orderBy('timestamp', 'desc'));
   const snapshot = await getDocs(q);
@@ -44,7 +42,7 @@ export const getTodayChangings = async (): Promise<Changing[]> => {
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
   const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-  return getChangingsInRange(startOfDay, endOfDay);
+  return getChangingsInRange(startOfDay.toISOString(), endOfDay.toISOString());
 };
 
 export const updateChanging = async (id: string, updatedData: Partial<Changing>) => {

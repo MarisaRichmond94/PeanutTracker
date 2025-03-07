@@ -26,10 +26,7 @@ export const getFeedings = async (): Promise<Feeding[]> => {
   }
 };
 
-export const getFeedingsInRange = async (startDate: Date, endDate: Date): Promise<Feeding[]> => {
-  const startTimestamp = Timestamp.fromDate(startDate);
-  const endTimestamp = Timestamp.fromDate(endDate);
-
+export const getFeedingsInRange = async (startTimestamp: string, endTimestamp: string): Promise<Feeding[]> => {
   const q = query(feedingCollection, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp), orderBy('timestamp', 'desc'));
   const snapshot = await getDocs(q);
 
@@ -44,7 +41,7 @@ export const getTodayFeedings = async (): Promise<Feeding[]> => {
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
   const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-  return getFeedingsInRange(startOfDay, endOfDay);
+  return getFeedingsInRange(startOfDay.toISOString(), endOfDay.toISOString());
 };
 
 export const updateFeeding = async (id: string, updatedData: Partial<Feeding>) => {

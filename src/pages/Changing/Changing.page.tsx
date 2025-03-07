@@ -36,7 +36,7 @@ export const ChangingPage = () => {
       <x.div margin='20px 0'>
         <x.div display='flex' flexDirection='column' gap='10px' marginBottom='15px'>
           <x.div display='flex' justifyContent='center'>
-            <Typography variant='h5'><b>Past Changings</b></Typography>
+            <Typography variant='h5'><b>Changing Logs</b></Typography>
           </x.div>
           <Divider sx={{ borderColor: 'white' }} />
         </x.div>

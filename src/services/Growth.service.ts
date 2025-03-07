@@ -26,10 +26,7 @@ export const getGrowths = async (): Promise<Growth[]> => {
   }
 };
 
-export const getGrowthsInRange = async (startDate: Date, endDate: Date): Promise<Growth[]> => {
-  const startTimestamp = Timestamp.fromDate(startDate);
-  const endTimestamp = Timestamp.fromDate(endDate);
-
+export const getGrowthsInRange = async (startTimestamp: string, endTimestamp: string): Promise<Growth[]> => {
   const q = query(growthCollection, where('timestamp', '>=', startTimestamp), where('timestamp', '<=', endTimestamp), orderBy('timestamp', 'desc'));
   const snapshot = await getDocs(q);
 
@@ -44,7 +41,7 @@ export const getTodayGrowths = async (): Promise<Growth[]> => {
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
   const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-  return getGrowthsInRange(startOfDay, endOfDay);
+  return getGrowthsInRange(startOfDay.toISOString(), endOfDay.toISOString());
 };
 
 export const updateGrowth = async (id: string, updatedData: Partial<Growth>) => {
