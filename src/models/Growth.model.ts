@@ -1,8 +1,8 @@
 export type Growth = {
   id: string;
-  headCircumference: number; // in centimeters
-  height: number; // in inches
+  headCircumference?: number; // in centimeters
+  height?: number; // in inches
   notes?: string;
   timestamp: string;
-  weight: number; // in pounds
+  weight?: number; // in pounds
 }
