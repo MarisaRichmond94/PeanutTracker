@@ -1,9 +1,10 @@
 import GrassRoundedIcon from '@mui/icons-material/GrassRounded';
-import { CircularProgress, Divider, Typography } from '@mui/material';
+import { Divider, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
+import { EmptyState, LoadingState } from '@components';
 import { Growth } from '@models';
 import { getGrowths } from '@services';
 
@@ -17,34 +18,17 @@ export const GrowthPage = () => {
     setGrowths(allGrowths);
   };
 
-  useEffect(() => {
-    void loadAllGrowths();
-  }, []);
+  useEffect(() => { void loadAllGrowths(); }, []);
 
   const renderGrowthLogs = () => {
-    if (isNil(growths)) {
-      return (
-        <x.div alignItems='center' display='flex' flexDirection='column' gap='10px' margin='10vh 0'>
-          <CircularProgress />
-        </x.div>
-      );
-    }
-
-    if (isEmpty(growths)) {
-      return (
-        <x.div alignItems='center' display='flex' flexDirection='column' gap='10px' margin='10vh 0'>
-          <Typography variant='body1'>No Growth Logs To Display</Typography>
-          <GrassRoundedIcon />
-        </x.div>
-      );
-    }
-
+    if (isNil(growths)) return <LoadingState />;
+    if (isEmpty(growths)) return <EmptyState icon={<GrassRoundedIcon />} type='Growth' />;
     return (
       <x.div display='flex' flexDirection='column' gap='15px'>
         {growths.map((growth, index) => <GrowthLog key={`growth-${index}`} growth={growth} onSuccess={loadAllGrowths} />)}
       </x.div>
     );
-  }
+  };
 
   return (
     <x.div id='growth-page'>

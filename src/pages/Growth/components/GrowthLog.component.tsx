@@ -1,8 +1,8 @@
-import { Box, Button, Card, CardActions, CardContent, TextField } from '@mui/material';
+import { CardContent, TextField } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { ChangeEvent, useState } from 'react';
 
-import { EditLogRow, LogRow } from '@components';
+import { EditLogRow, Log, LogRow } from '@components';
 import { Growth } from '@models';
 import { deleteGrowth, updateGrowth } from '@services';
 import { formatTimestamp } from '@utils';
@@ -33,8 +33,6 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
     setUpdatedWeight(weight);
     setIsInEditMode(false);
   };
-
-  const onEdit = async () => setIsInEditMode(true);
 
   const onUpdate = async () => {
     await updateGrowth(id, {
@@ -128,25 +126,14 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
   );
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))',
-        gap: 2,
-      }}
-    >
-      <Card>
-        {isInEditMode ? getEditableCardContent() : getCardContent()}
-        <CardActions sx={{ justifyContent: 'right' }}>
-          <Button color='primary' onClick={isInEditMode ? onUpdate : onEdit} variant='contained'>
-            {isInEditMode ? 'Update' : 'Edit'}
-          </Button>
-          <Button color='error' onClick={isInEditMode ? onDiscard : onDelete} variant='outlined'>
-            {isInEditMode ? 'Discard' : 'Delete'}
-          </Button>
-        </CardActions>
-      </Card>
-    </Box>
+    <Log
+      isInEditMode={isInEditMode}
+      getCardContent={getCardContent}
+      getEditableCardContent={getEditableCardContent}
+      onDelete={onDelete}
+      onDiscard={onDiscard}
+      onUpdate={onUpdate}
+      setIsInEditMode={setIsInEditMode}
+    />
   );
 };

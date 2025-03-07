@@ -1,9 +1,10 @@
 import NoMealsRoundedIcon from '@mui/icons-material/NoMealsRounded';
-import { CircularProgress, Divider, Typography } from '@mui/material';
+import { Divider, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
+import { EmptyState, LoadingState } from '@components';
 import { Feeding } from '@models';
 import { getFeedings } from '@services';
 
@@ -17,34 +18,17 @@ export const FeedingPage = () => {
     setFeedings(allFeedings);
   };
 
-  useEffect(() => {
-    void loadAllFeedings();
-  }, []);
+  useEffect(() => { void loadAllFeedings(); }, []);
 
   const renderFeedingLogs = () => {
-    if (isNil(feedings)) {
-      return (
-        <x.div alignItems='center' display='flex' flexDirection='column' gap='10px' margin='10vh 0'>
-          <CircularProgress />
-        </x.div>
-      );
-    }
-
-    if (isEmpty(feedings)) {
-      return (
-        <x.div alignItems='center' display='flex' flexDirection='column' gap='10px' margin='10vh 0'>
-          <Typography variant='body1'>No Feeding Logs To Display</Typography>
-          <NoMealsRoundedIcon />
-        </x.div>
-      );
-    }
-
+    if (isNil(feedings)) return <LoadingState />;
+    if (isEmpty(feedings)) return <EmptyState icon={<NoMealsRoundedIcon />} type='Feeding' />;
     return (
       <x.div display='flex' flexDirection='column' gap='15px'>
         {feedings.map((feeding, index) => <FeedingLog key={`feeding-${index}`} feeding={feeding} onSuccess={loadAllFeedings} />)}
       </x.div>
     );
-  }
+  };
 
   return (
     <x.div id='feeding-page'>

@@ -1,9 +1,9 @@
-import { Box, Button, Card, CardActions, CardContent, FormControl, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
+import { CardContent, FormControl, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { isNil } from 'lodash';
 import { ChangeEvent, useState } from 'react';
 
-import { EditLogRow, LogRow } from '@components';
+import { EditLogRow, Log, LogRow } from '@components';
 import { Sleep, SleepLocation, SleepType } from '@models';
 import { deleteSleep, updateSleep } from '@services';
 import { formatDate, toCapitalCase } from '@utils';
@@ -39,8 +39,6 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
     setUpdatedType(type);
     setIsInEditMode(false);
   };
-
-  const onEdit = async () => setIsInEditMode(true);
 
   const onUpdate = async () => {
     clearErrors();
@@ -156,25 +154,14 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
   );
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))',
-        gap: 2,
-      }}
-    >
-      <Card>
-        {isInEditMode ? getEditableCardContent() : getCardContent()}
-        <CardActions sx={{ justifyContent: 'right' }}>
-          <Button color='primary' onClick={isInEditMode ? onUpdate : onEdit} variant='contained'>
-            {isInEditMode ? 'Update' : 'Edit'}
-          </Button>
-          <Button color='error' onClick={isInEditMode ? onDiscard : onDelete} variant='outlined'>
-            {isInEditMode ? 'Discard' : 'Delete'}
-          </Button>
-        </CardActions>
-      </Card>
-    </Box>
+    <Log
+      isInEditMode={isInEditMode}
+      getCardContent={getCardContent}
+      getEditableCardContent={getEditableCardContent}
+      onDelete={onDelete}
+      onDiscard={onDiscard}
+      onUpdate={onUpdate}
+      setIsInEditMode={setIsInEditMode}
+    />
   );
 };

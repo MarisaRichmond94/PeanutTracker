@@ -1,12 +1,10 @@
-import { ExpandMoreRounded } from '@mui/icons-material';
-import { Accordion, AccordionActions, AccordionDetails, AccordionSummary, Button, Divider, FormControl, FormHelperText, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
-import { x } from '@xstyled/styled-components';
+import { FormControl, FormHelperText, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import { isNil } from 'lodash';
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
+import { Form } from '@components';
 import { FeedingMethod, FeedingSide } from '@models';
 import { createNewFeeding } from '@services';
-import { WhiteButton } from '@styles';
 import { toCapitalCase } from '@utils';
 
 type FeedingFormProps = {
@@ -78,10 +76,9 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
     onSuccess();
   };
 
-  const onToggleFormState =
-    (_: SyntheticEvent, isExpanded: boolean) => {
-      setIsFormExpanded(isExpanded);
-    };
+  const onToggleFormState = (_: SyntheticEvent, isExpanded: boolean) => {
+    setIsFormExpanded(isExpanded);
+  };
 
   const updateAmount = (event: ChangeEvent<HTMLInputElement>) => {
     setAmountErrorText(undefined);
@@ -98,111 +95,100 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
     setSide(event.target.value as FeedingSide);
   };
 
+  const fields = (
+    <>
+      <FormControl fullWidth>
+        <InputLabel id='feeding-method-select-label'>Method</InputLabel>
+        <Select
+          id='feeding-method-select'
+          label='Method'
+          labelId='feeding-method-select-label'
+          onChange={(event: SelectChangeEvent<FeedingMethod>) => setMethod(event.target.value as FeedingMethod)}
+          required
+          value={method}
+        >
+          {
+            Object.values(FeedingMethod).map((it, index) =>
+              <MenuItem key={`feeding-method-${index}`} value={it}>
+                {toCapitalCase(it)}
+              </MenuItem>
+            )
+          }
+        </Select>
+      </FormControl>
+      <FormControl error={!isNil(sideErrorText)} fullWidth>
+        <InputLabel id='feeding-side-select-label'>Side</InputLabel>
+        <Select
+          labelId='feeding-side-select-label'
+          id='feeding-side-select'
+          value={side}
+          label='Side'
+          onChange={updateSide}
+        >
+          {
+            Object.values(FeedingSide).map((it, index) =>
+              <MenuItem key={`feeding-side-${index}`} value={it}>
+                {toCapitalCase(it)}
+              </MenuItem>
+            )
+          }
+        </Select>
+        {!isNil(sideErrorText) && <FormHelperText>{sideErrorText}</FormHelperText>}
+      </FormControl>
+      <TextField
+        error={!isNil(amountErrorText)}
+        helperText={amountErrorText}
+        id='feeding-amount-field'
+        label='Amount In Ounces'
+        onChange={updateAmount}
+        placeholder='(if bottlefeeding) how much?'
+        slotProps={{
+          inputLabel: {
+            shrink: true,
+          },
+        }}
+        type='number'
+        value={amount}
+      />
+      <TextField
+        error={!isNil(durationErrorText)}
+        helperText={durationErrorText}
+        id='feeding-duration-field'
+        label='Duration In Minutes'
+        onChange={updateDuration}
+        placeholder='(if breastfeeding) for how long?'
+        slotProps={{
+          inputLabel: {
+            shrink: true,
+          },
+        }}
+        type='number'
+        value={duration}
+      />
+      <TextField
+        id='feeding-notes-field'
+        label='Notes'
+        onChange={(event: ChangeEvent<HTMLInputElement>) => setNotes(event.target.value)}
+        placeholder='include any relevant details'
+        slotProps={{
+          inputLabel: {
+            shrink: true,
+          },
+        }}
+        type='string'
+        value={notes}
+      />
+    </>
+  );
+
   return (
-    <Accordion expanded={isFormExpanded} onChange={onToggleFormState}>
-      <AccordionSummary
-        expandIcon={<ExpandMoreRounded />}
-        aria-controls='feeding-form-content'
-        id='feeding-form-header'
-      >
-        <Typography sx={{ m: 0, p: 0 }} variant='h6'>Log New Feeding</Typography>
-        <Divider sx={{ borderColor: 'white' }} />
-      </AccordionSummary>
-      <AccordionDetails>
-        <x.div display='flex' flexDirection='column' gap='20px'>
-          <FormControl fullWidth>
-            <InputLabel id='feeding-method-select-label'>Method</InputLabel>
-            <Select
-              id='feeding-method-select'
-              label='Method'
-              labelId='feeding-method-select-label'
-              onChange={(event: SelectChangeEvent<FeedingMethod>) => setMethod(event.target.value as FeedingMethod)}
-              required
-              value={method}
-            >
-              {
-                Object.values(FeedingMethod).map((it, index) =>
-                  <MenuItem key={`feeding-method-${index}`} value={it}>
-                    {toCapitalCase(it)}
-                  </MenuItem>
-                )
-              }
-            </Select>
-          </FormControl>
-          <FormControl error={!isNil(sideErrorText)} fullWidth>
-            <InputLabel id='feeding-side-select-label'>Side</InputLabel>
-            <Select
-              labelId='feeding-side-select-label'
-              id='feeding-side-select'
-              value={side}
-              label='Side'
-              onChange={updateSide}
-            >
-              {
-                Object.values(FeedingSide).map((it, index) =>
-                  <MenuItem key={`feeding-side-${index}`} value={it}>
-                    {toCapitalCase(it)}
-                  </MenuItem>
-                )
-              }
-            </Select>
-            {!isNil(sideErrorText) && <FormHelperText>{sideErrorText}</FormHelperText>}
-          </FormControl>
-          <TextField
-            error={!isNil(amountErrorText)}
-            helperText={amountErrorText}
-            id='feeding-amount-field'
-            label='Amount In Ounces'
-            onChange={updateAmount}
-            placeholder='(if bottlefeeding) how much?'
-            slotProps={{
-              inputLabel: {
-                shrink: true,
-              },
-            }}
-            type='number'
-            value={amount}
-          />
-          <TextField
-            error={!isNil(durationErrorText)}
-            helperText={durationErrorText}
-            id='feeding-duration-field'
-            label='Duration In Minutes'
-            onChange={updateDuration}
-            placeholder='(if breastfeeding) for how long?'
-            slotProps={{
-              inputLabel: {
-                shrink: true,
-              },
-            }}
-            type='number'
-            value={duration}
-          />
-          <TextField
-            id='feeding-notes-field'
-            label='Notes'
-            onChange={(event: ChangeEvent<HTMLInputElement>) => setNotes(event.target.value)}
-            placeholder='include any relevant details'
-            slotProps={{
-              inputLabel: {
-                shrink: true,
-              },
-            }}
-            type='string'
-            value={notes}
-          />
-        </x.div>
-      </AccordionDetails>
-      <AccordionActions>
-        <x.div display='flex' gap='20px' justifyContent='right'>
-          <WhiteButton onClick={onDiscard} variant='outlined'>
-            Discard
-          </WhiteButton>
-          <Button onClick={onSubmit} variant='contained'>
-            Log
-          </Button>
-        </x.div>
-      </AccordionActions>
-    </Accordion>
+    <Form
+      fields={fields}
+      isFormExpanded={isFormExpanded}
+      type='Feeding'
+      onDiscard={onDiscard}
+      onSubmit={onSubmit}
+      onToggleFormState={onToggleFormState}
+    />
   );
 };

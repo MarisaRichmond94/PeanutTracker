@@ -26,7 +26,7 @@ export const getChangings = async (): Promise<Changing[]> => {
   }
 };
 
-export const getChangingsInRange = async (startDate: Date, endDate: Date): Promise<changing[]> => {
+export const getChangingsInRange = async (startDate: Date, endDate: Date): Promise<Changing[]> => {
   const startTimestamp = Timestamp.fromDate(startDate);
   const endTimestamp = Timestamp.fromDate(endDate);
 
