@@ -15,7 +15,7 @@ export const FeedingPage = () => {
   const loadAllFeedings = async () => {
     const allFeedings = await getFeedings();
     setFeedings(allFeedings);
-  }
+  };
 
   useEffect(() => {
     void loadAllFeedings();
@@ -33,7 +33,7 @@ export const FeedingPage = () => {
     if (isEmpty(feedings)) {
       return (
         <x.div alignItems='center' display='flex' flexDirection='column' gap='10px' margin='10vh 0'>
-          <Typography variant='body1'>No Feedings To Display</Typography>
+          <Typography variant='body1'>No Feeding Logs To Display</Typography>
           <NoMealsRoundedIcon />
         </x.div>
       );
