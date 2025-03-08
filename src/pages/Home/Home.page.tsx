@@ -1,23 +1,33 @@
+import './Home.scss';
+
 import BabyChangingStationRoundedIcon from '@mui/icons-material/BabyChangingStationRounded';
 import BedtimeOffRoundedIcon from '@mui/icons-material/BedtimeOffRounded';
 import GrassRoundedIcon from '@mui/icons-material/GrassRounded';
 import NoMealsRoundedIcon from '@mui/icons-material/NoMealsRounded';
-import { ExpandMoreRounded } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, CardContent, Divider, Typography } from '@mui/material';
+import { CardContent, Divider, FormControl, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { isEmpty, isNil } from 'lodash';
-import { ReactNode, SyntheticEvent, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
-import { EmptyState, LoadingState, LogRow } from '@components';
-import { Changing, Feeding, FeedingMethod, Growth, Sleep } from '@models';
+import { EmptyState, LoadingState } from '@components';
+import { Changing, Feeding, FeedingMethod, Growth, Sleep, SleepType, WasteType } from '@models';
 import { getTodayChangings, getTodayFeedings, getTodayGrowths, getTodaySleeps } from '@services';
-import { formatShortDate, getTimeOnly, subtractMinutes } from '@utils';
+import { LogEntry, LogType } from '@types';
+import { formatShortDate, getTimeOnly, toCapitalCase } from '@utils';
+
+import { DailySnapshot, TimelineView } from './components';
+
+enum DailyViewType {
+  SPLIT = 'split',
+  UNIFIED = 'unified',
+}
 
 export const HomePage = () => {
   const [changings, setChangings] = useState<Changing[] | undefined>();
   const [feedings, setFeedings] = useState<Feeding[] | undefined>();
   const [growths, setGrowths] = useState<Growth[] | undefined>();
   const [sleeps, setSleeps] = useState<Sleep[] | undefined>();
+  const [view, setView] = useState<DailyViewType>(DailyViewType.UNIFIED);
 
   const loadDailySnapshot = async () => {
     const todaysChangings = await getTodayChangings();
@@ -47,13 +57,19 @@ export const HomePage = () => {
     if (isEmpty(changings)) return <EmptyState icon={<BabyChangingStationRoundedIcon />} type='Changing' />;
     return changings.map((changing) => {
       const { color, consistency, notes, timestamp, type } = changing;
+      const formattedType = type === WasteType.BOTH ? 'Wet And Dirty' : type;
+
       return generateLog(
         <>
-          <LogRow field='Time' value={getTimeOnly(timestamp)} />
-          <LogRow field='Type' value={type} />
-          <LogRow field='Color' value={color} />
-          <LogRow field='Consistency' value={consistency} />
-          <LogRow field='Notes' value={notes} />
+          <x.h3 margin='0'>
+            {toCapitalCase(`Changed ${formattedType} Diaper`)}
+          </x.h3>
+          <x.p margin='0'>
+            {!isNil(color) && <><b>Color:</b> {color}<br/></>}
+            {!isNil(consistency) && <><b>Consistency:</b> {consistency}<br/></>}
+            <b>Notes:</b> {notes}
+          </x.p>
+          <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
         </>
       );
     });
@@ -67,12 +83,16 @@ export const HomePage = () => {
       const isBreastFeeding = method === FeedingMethod.BREAST;
       return generateLog(
         <>
-          <LogRow field='Method' value={method} />
-          <LogRow field='Time' value={getTimeOnly(isBreastFeeding ? subtractMinutes(timestamp, duration!) : timestamp)} />
-          {isBreastFeeding && <LogRow field='Duration' value={duration} />}
-          {isBreastFeeding && <LogRow field='Side' value={side} />}
-          {!isBreastFeeding && <LogRow field='Amount' value={amount} />}
-          <LogRow field='Notes' value={notes} />
+          <x.h3 margin='0'>
+            {isBreastFeeding ? 'Breast Fed' : 'Bottle Fed'}
+          </x.h3>
+          <x.p margin='0'>
+            {isBreastFeeding && <><b>Duration:</b> {`${duration} minutes`}<br /></>}
+            {isBreastFeeding && <><b>Side:</b> {side}<br /></>}
+            {!isBreastFeeding && <><b>Amount:</b> {`${amount} ounces`}<br /></>}
+            <b>Notes:</b> {notes}
+          </x.p>
+          <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
         </>
       );
     });
@@ -82,13 +102,17 @@ export const HomePage = () => {
     if (isNil(growths)) return <LoadingState />;
     if (isEmpty(growths)) return <EmptyState icon={<GrassRoundedIcon />} type='Growth' />;
     return growths.map((growth) => {
-      const { headCircumference, height, notes, weight } = growth;
+      const { headCircumference, height, notes, timestamp, weight } = growth;
       return generateLog(
         <>
-          <LogRow field='Head' value={`${headCircumference} centimeters`} />
-          <LogRow field='Height' value={`${height} inches`} />
-          <LogRow field='Weight' value={`${weight} pounds`} />
-          <LogRow field='Notes' value={notes} />
+          <x.h3 margin='0'>Recorded Growth</x.h3>
+          <x.p margin='0'>
+            {!isNil(headCircumference) && <><b>Head Circumference:</b> {`${headCircumference} centimeters`}<br/></>}
+            {!isNil(height) && <><b>Height:</b> {`${height} inches`}<br/></>}
+            {!isNil(weight) && <><b>Weight:</b> {`${weight} pounds`}<br/></>}
+            <b>Notes:</b> {notes}
+          </x.p>
+          <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
         </>
       );
     });
@@ -99,61 +123,77 @@ export const HomePage = () => {
     if (isEmpty(sleeps)) return <EmptyState icon={<BedtimeOffRoundedIcon />} type='Sleep' />;
     return sleeps.map((sleep) => {
       const { duration, location, notes, startTime, type } = sleep;
+      const sleepAction = type === SleepType.NAP ? 'Napped' : 'Slept';
+
       return generateLog(
         <>
-          <LogRow field='Time' value={getTimeOnly(startTime)} />
-          <LogRow field='Duration' value={duration} />
-          <LogRow field='Location' value={location} />
-          <LogRow field='Type' value={type} />
-          <LogRow field='Notes' value={notes} />
+          <x.h3 margin='0'>
+            {toCapitalCase(`${sleepAction} in ${location}`)}
+          </x.h3>
+          <x.p margin='0'>
+            <b>Duration:</b> {`${duration} minutes`}<br/>
+            <b>Notes:</b> {notes}
+          </x.p>
+          <x.p margin='0'>{getTimeOnly(startTime)}</x.p>
         </>
       );
     });
   };
 
-  return (
-    <>
-      <x.div display='flex' flexDirection='column' gap='10px' marginBottom='15px'>
-        <x.div display='flex' justifyContent='center'>
-          <Typography variant='h5'><b>{`Daily Snapshot (${formatShortDate(new Date().toISOString())})`}</b></Typography>
-        </x.div>
-        <Divider sx={{ borderColor: 'white' }} />
-      </x.div>
-      <x.div display='flex' flexDirection='column' gap='15px'>
-        <DailySnapshot logs={generateFeedingLogs()} type='Feeding' />
-        <DailySnapshot logs={generateSleepLogs()} type='Sleep' />
-        <DailySnapshot logs={generateChangingLogs()} type='Changing' />
-        <DailySnapshot logs={generateGrowthLogs()} type='Growth' />
-      </x.div>
-    </>
-  );
-};
+  const getCombinedLogs = (): LogEntry[] => {
+    const allLogs = [
+      ...(feedings?.map((f) => ({ ...f, time: getTimeOnly(f.timestamp), logType: LogType.FEEDING })) || []),
+      ...(changings?.map((c) => ({ ...c, time: getTimeOnly(c.timestamp), logType: LogType.CHANGING })) || []),
+      ...(growths?.map((g) => ({ ...g, time: getTimeOnly(g.timestamp), logType: LogType.GROWTH })) || []),
+      ...(sleeps?.map((s) => ({ ...s, timestamp: s.startTime, time: getTimeOnly(s.startTime), logType: LogType.SLEEP })) || []),
+    ];
+    allLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-type DailySnapshotProps = {
-  logs: ReactNode;
-  type: string;
-}
+    return allLogs;
+  };
 
-const DailySnapshot = ({ logs, type }: DailySnapshotProps) => {
-  const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
-
-  const onToggleFormState = (_: SyntheticEvent, isExpanded: boolean) => {
-    setIsFormExpanded(isExpanded);
+  const getLogs = () => {
+    switch (view) {
+      case DailyViewType.SPLIT:
+        return (
+          <x.div display='flex' flexDirection='column' gap='15px'>
+            <DailySnapshot logs={generateFeedingLogs()} type='Feeding' />
+            <DailySnapshot logs={generateSleepLogs()} type='Sleep' />
+            <DailySnapshot logs={generateChangingLogs()} type='Changing' />
+            <DailySnapshot logs={generateGrowthLogs()} type='Growth' />
+          </x.div>
+        );
+      case DailyViewType.UNIFIED:
+        return <TimelineView logs={getCombinedLogs()} />;
+    }
   };
 
   return (
-    <Accordion expanded={isFormExpanded} onChange={onToggleFormState}>
-      <AccordionSummary
-        expandIcon={<ExpandMoreRounded />}
-        aria-controls='growth-form-content'
-        id='growth-form-header'
-      >
-        <Typography sx={{ m: 0, p: 0 }} variant='h6'>{`${type} Logs`}</Typography>
+    <>
+      <x.div display='flex' flexDirection='column' gap='10px' marginBottom='15px'>
+        <x.div alignItems='center' display='flex' flexDirection='column'>
+          <Typography variant='h5'><b>{`Daily Snapshot (${formatShortDate(new Date().toISOString())})`}</b></Typography>
+          <FormControl sx={{ m: 1, width: 200 }}>
+            <Select
+              id='daily-view-type-select'
+              labelId='daily-view-type-select-label'
+              onChange={(event: SelectChangeEvent<DailyViewType>) => setView(event.target.value as DailyViewType)}
+              required
+              value={view}
+            >
+              {
+                Object.values(DailyViewType).map((it, index) =>
+                  <MenuItem key={`daily-view-type-${index}`} value={it}>
+                    {toCapitalCase(it)}
+                  </MenuItem>
+                )
+              }
+            </Select>
+          </FormControl>
+        </x.div>
         <Divider sx={{ borderColor: 'white' }} />
-      </AccordionSummary>
-      <AccordionDetails>
-        {logs}
-      </AccordionDetails>
-    </Accordion>
+      </x.div>
+      {getLogs()}
+    </>
   );
 };

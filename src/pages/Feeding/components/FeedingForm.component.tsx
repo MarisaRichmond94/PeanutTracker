@@ -5,7 +5,7 @@ import { ChangeEvent, SyntheticEvent, useState } from 'react';
 import { Form } from '@components';
 import { FeedingMethod, FeedingSide } from '@models';
 import { createNewFeeding } from '@services';
-import { toCapitalCase } from '@utils';
+import { subtractMinutes, toCapitalCase } from '@utils';
 
 type FeedingFormProps = {
   onSuccess: () => void;
@@ -67,7 +67,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   const onSubmit = async () => {
     if (handleValidation()) return;
     if (method === FeedingMethod.BREAST) {
-      await createNewFeeding({ duration, side, method, notes, timestamp: new Date().toISOString() });
+      await createNewFeeding({ duration, side, method, notes, timestamp: subtractMinutes(new Date().toISOString(), duration!) });
     } else {
       await createNewFeeding({ amount, method, notes, timestamp: new Date().toISOString() });
     }
