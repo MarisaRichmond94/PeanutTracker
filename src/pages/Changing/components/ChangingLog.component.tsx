@@ -3,6 +3,7 @@ import { x } from '@xstyled/styled-components';
 import { ChangeEvent, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
+import { useProfile } from '@contexts';
 import { Changing, WasteColor, WasteConsistency, WasteType } from '@models';
 import { deleteChanging, updateChanging } from '@services';
 import { formatTimestamp, toCapitalCase } from '@utils';
@@ -13,6 +14,8 @@ interface ChangingLogProps {
 }
 
 export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
+  const { firstName } = useProfile();
+
   const { id, color, consistency, notes, type, timestamp } = changing;
 
   const [isInEditMode, setIsInEditMode] = useState(false);
@@ -135,7 +138,7 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
             className='skinny-text-field'
             id='changing-notes-field'
             onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedNotes(event.target.value)}
-            placeholder='include any relevant details'
+            placeholder={`Any additional details about ${firstName}'s diaper change?`}
             slotProps={{
               inputLabel: {
                 shrink: true,

@@ -3,6 +3,7 @@ import { isNil } from 'lodash';
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
 import { Form } from '@components';
+import { useProfile } from '@contexts';
 import { FeedingMethod, FeedingSide } from '@models';
 import { createNewFeeding } from '@services';
 import { subtractMinutes, toCapitalCase } from '@utils';
@@ -12,6 +13,8 @@ type FeedingFormProps = {
 }
 
 export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
+  const { firstName } = useProfile();
+
   const [amount, setAmount] = useState<number | undefined>();
   const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
   const [duration, setDuration] = useState<number | undefined>();
@@ -62,6 +65,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   const onDiscard = () => {
     clearErrors();
     clearState();
+    setIsFormExpanded(false);
   };
 
   const onSubmit = async () => {
@@ -141,7 +145,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
         id='feeding-amount-field'
         label='Amount In Ounces'
         onChange={updateAmount}
-        placeholder='(if bottlefeeding) how much?'
+        placeholder={`How much did ${firstName} drink (if bottlefeeding)?`}
         slotProps={{
           inputLabel: {
             shrink: true,
@@ -156,7 +160,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
         id='feeding-duration-field'
         label='Duration In Minutes'
         onChange={updateDuration}
-        placeholder='(if breastfeeding) for how long?'
+        placeholder={`How long did ${firstName} feed (if breastfeeding)?`}
         slotProps={{
           inputLabel: {
             shrink: true,
@@ -169,7 +173,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
         id='feeding-notes-field'
         label='Notes'
         onChange={(event: ChangeEvent<HTMLInputElement>) => setNotes(event.target.value)}
-        placeholder='include any relevant details'
+        placeholder={`Any additional details about ${firstName}'s feeding?`}
         slotProps={{
           inputLabel: {
             shrink: true,

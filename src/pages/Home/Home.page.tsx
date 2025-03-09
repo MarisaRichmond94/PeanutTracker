@@ -2,6 +2,7 @@ import './Home.scss';
 
 import BabyChangingStationRoundedIcon from '@mui/icons-material/BabyChangingStationRounded';
 import BedtimeOffRoundedIcon from '@mui/icons-material/BedtimeOffRounded';
+import FolderOffRoundedIcon from '@mui/icons-material/FolderOffRounded';
 import GrassRoundedIcon from '@mui/icons-material/GrassRounded';
 import NoMealsRoundedIcon from '@mui/icons-material/NoMealsRounded';
 import { CardContent, Divider, FormControl, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
@@ -56,11 +57,11 @@ export const HomePage = () => {
     if (isNil(changings)) return <LoadingState />;
     if (isEmpty(changings)) return <EmptyState icon={<BabyChangingStationRoundedIcon />} type='Changing' />;
     return changings.map((changing) => {
-      const { color, consistency, notes, timestamp, type } = changing;
+      const { id, color, consistency, notes, timestamp, type } = changing;
       const formattedType = type === WasteType.BOTH ? 'Wet And Dirty' : type;
 
       return generateLog(
-        <>
+        <x.div key={`changing-log-${id}`}>
           <x.h3 margin='0'>
             {toCapitalCase(`Changed ${formattedType} Diaper`)}
           </x.h3>
@@ -70,7 +71,7 @@ export const HomePage = () => {
             <b>Notes:</b> {notes}
           </x.p>
           <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
-        </>
+        </x.div>
       );
     });
   };
@@ -79,10 +80,10 @@ export const HomePage = () => {
     if (isNil(feedings)) return <LoadingState />;
     if (isEmpty(feedings)) return <EmptyState icon={<NoMealsRoundedIcon />} type='Feeding' />;
     return feedings.map((feeding) => {
-      const { amount, duration, method, notes, side, timestamp } = feeding;
+      const { id, amount, duration, method, notes, side, timestamp } = feeding;
       const isBreastFeeding = method === FeedingMethod.BREAST;
       return generateLog(
-        <>
+        <x.div key={`feeding-log-${id}`}>
           <x.h3 margin='0'>
             {isBreastFeeding ? 'Breast Fed' : 'Bottle Fed'}
           </x.h3>
@@ -93,7 +94,7 @@ export const HomePage = () => {
             <b>Notes:</b> {notes}
           </x.p>
           <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
-        </>
+        </x.div>
       );
     });
   };
@@ -102,9 +103,9 @@ export const HomePage = () => {
     if (isNil(growths)) return <LoadingState />;
     if (isEmpty(growths)) return <EmptyState icon={<GrassRoundedIcon />} type='Growth' />;
     return growths.map((growth) => {
-      const { headCircumference, height, notes, timestamp, weight } = growth;
+      const { id, headCircumference, height, notes, timestamp, weight } = growth;
       return generateLog(
-        <>
+        <x.div key={`growth-log-${id}`}>
           <x.h3 margin='0'>Recorded Growth</x.h3>
           <x.p margin='0'>
             {!isNil(headCircumference) && <><b>Head Circumference:</b> {`${headCircumference} centimeters`}<br/></>}
@@ -113,7 +114,7 @@ export const HomePage = () => {
             <b>Notes:</b> {notes}
           </x.p>
           <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
-        </>
+        </x.div>
       );
     });
   };
@@ -122,11 +123,11 @@ export const HomePage = () => {
     if (isNil(sleeps)) return <LoadingState />;
     if (isEmpty(sleeps)) return <EmptyState icon={<BedtimeOffRoundedIcon />} type='Sleep' />;
     return sleeps.map((sleep) => {
-      const { duration, location, notes, startTime, type } = sleep;
+      const { id, duration, location, notes, startTime, type } = sleep;
       const sleepAction = type === SleepType.NAP ? 'Napped' : 'Slept';
 
       return generateLog(
-        <>
+        <x.div key={`sleep-log-${id}`}>
           <x.h3 margin='0'>
             {toCapitalCase(`${sleepAction} in ${location}`)}
           </x.h3>
@@ -135,7 +136,7 @@ export const HomePage = () => {
             <b>Notes:</b> {notes}
           </x.p>
           <x.p margin='0'>{getTimeOnly(startTime)}</x.p>
-        </>
+        </x.div>
       );
     });
   };
@@ -164,7 +165,11 @@ export const HomePage = () => {
           </x.div>
         );
       case DailyViewType.UNIFIED:
-        return <TimelineView logs={getCombinedLogs()} />;
+        // eslint-disable-next-line no-case-declarations
+        const logs = getCombinedLogs();
+        if (isNil(logs)) return <LoadingState />;
+        if (isEmpty(logs)) return <EmptyState icon={<FolderOffRoundedIcon />} type='Daily' />;
+        return <TimelineView logs={logs} />;
     }
   };
 

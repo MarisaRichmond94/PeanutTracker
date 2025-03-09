@@ -1,5 +1,6 @@
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Divider, Typography } from '@mui/material';
+import { x } from '@xstyled/styled-components';
 import { ReactNode, SyntheticEvent, useState } from 'react';
 
 type DailySnapshotProps = {
@@ -25,7 +26,9 @@ export const DailySnapshot = ({ logs, type }: DailySnapshotProps) => {
         <Divider sx={{ borderColor: 'white' }} />
       </AccordionSummary>
       <AccordionDetails>
-        {logs}
+        <x.div display='flex' flexDirection='column' gap='15px'>
+          {logs}
+        </x.div>
       </AccordionDetails>
     </Accordion>
   );

@@ -3,7 +3,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material';
 import { PropsWithChildren } from 'react';
 // import { ThemeProvider } from 'styled-components';
 
-import { AuthenticationProvider, GlobalProvider } from '@contexts';
+import { AuthenticationProvider, GlobalProvider, ProfileProvider } from '@contexts';
 import { theme } from '@styles';
 
 export const AppContainer = ({ children }: PropsWithChildren) => (
@@ -11,7 +11,9 @@ export const AppContainer = ({ children }: PropsWithChildren) => (
     <CssBaseline />
     <GlobalProvider>
       <AuthenticationProvider>
-        {children}
+        <ProfileProvider>
+          {children}
+        </ProfileProvider>
       </AuthenticationProvider>
     </GlobalProvider>
   </ThemeProvider>

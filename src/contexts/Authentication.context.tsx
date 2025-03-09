@@ -8,6 +8,7 @@ import { Page } from '@types';
 import { useGlobal } from './Global.context';
 
 export type AuthenticationState = {
+  email?: string | null;
   user: User | null;
 
   signInWithGoogle: () => void;
@@ -52,6 +53,7 @@ export const AuthenticationProvider = ({ children }: PropsWithChildren) => {
   };
 
   const value = {
+    email: user?.email,
     user,
 
     signInWithGoogle,

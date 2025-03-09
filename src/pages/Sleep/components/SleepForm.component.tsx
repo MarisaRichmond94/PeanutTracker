@@ -3,6 +3,7 @@ import { isNil } from 'lodash';
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
 import { Form } from '@components';
+import { useProfile } from '@contexts';
 import { createNewSleep } from '@services';
 import { toCapitalCase } from '@utils';
 import { SleepLocation, SleepType } from '@models';
@@ -12,6 +13,8 @@ type SleepFormProps = {
 }
 
 export const SleepForm = ({ onSuccess }: SleepFormProps) => {
+  const { firstName } = useProfile();
+
   const [duration, setDuration] = useState<number | undefined>();
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
@@ -33,6 +36,7 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
   const onDiscard = () => {
     clearErrors();
     clearState();
+    setIsFormExpanded(false);
   };
 
   const onSubmit = async () => {
@@ -110,7 +114,7 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
         id='sleep-duration-field'
         label='Duration In Minutes'
         onChange={updateDuration}
-        placeholder='how long did peanut sleep?'
+        placeholder={`How long did ${firstName} sleep?`}
         slotProps={{
           inputLabel: {
             shrink: true,
@@ -123,7 +127,7 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
         id='sleep-notes-field'
         label='Notes'
         onChange={(event: ChangeEvent<HTMLInputElement>) => setNotes(event.target.value)}
-        placeholder='include any relevant details'
+        placeholder={`Any additional details about ${firstName}'s sleep?`}
         slotProps={{
           inputLabel: {
             shrink: true,

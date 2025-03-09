@@ -2,6 +2,7 @@ import { TextField } from '@mui/material';
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
 import { Form } from '@components';
+import { useProfile } from '@contexts';
 import { createNewGrowth } from '@services';
 
 type GrowthFormProps = {
@@ -9,6 +10,8 @@ type GrowthFormProps = {
 }
 
 export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
+  const { firstName } = useProfile();
+
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   const [headCircumference, setHeadCircumference] = useState<number | undefined>();
   const [height, setHeight] = useState<number | undefined>();
@@ -22,7 +25,10 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
     setWeight(undefined);
   };
 
-  const onDiscard = () => clearState();
+  const onDiscard = () => {
+    clearState();
+    setIsFormExpanded(false);
+  };
 
   const onSubmit = async () => {
     await createNewGrowth({ headCircumference, height, notes, weight, timestamp: new Date().toISOString() });
@@ -41,7 +47,7 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
         id='growth-head-circumference-field'
         label='Head Circumference In Centimeters'
         onChange={(event: ChangeEvent<HTMLInputElement>) => setHeadCircumference(Number(event.target.value))}
-        placeholder='how big is that dome?'
+        placeholder={`How big is ${firstName}'s head in centimeters?`}
         slotProps={{
           inputLabel: {
             shrink: true,
@@ -54,7 +60,7 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
         id='growth-height-field'
         label='Height In Inches'
         onChange={(event: ChangeEvent<HTMLInputElement>) => setHeight(Number(event.target.value))}
-        placeholder='how tall is peanut?'
+        placeholder={`How tall is ${firstName} in inches?`}
         slotProps={{
           inputLabel: {
             shrink: true,
@@ -67,7 +73,7 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
         id='growth-weight-field'
         label='Weight In Pounds'
         onChange={(event: ChangeEvent<HTMLInputElement>) => setWeight(Number(event.target.value))}
-        placeholder='how much does peanut weigh?'
+        placeholder={`How much does ${firstName} weigh in pounds?`}
         slotProps={{
           inputLabel: {
             shrink: true,
@@ -80,7 +86,7 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
         id='growth-notes-field'
         label='Notes'
         onChange={(event: ChangeEvent<HTMLInputElement>) => setNotes(event.target.value)}
-        placeholder='include any relevant details'
+        placeholder={`Any additional details about ${firstName}'s growth?`}
         slotProps={{
           inputLabel: {
             shrink: true,

@@ -4,6 +4,7 @@ import { isNil } from 'lodash';
 import { ChangeEvent, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
+import { useProfile } from '@contexts';
 import { Sleep, SleepLocation, SleepType } from '@models';
 import { deleteSleep, updateSleep } from '@services';
 import { formatDate, toCapitalCase } from '@utils';
@@ -14,6 +15,8 @@ interface SleepLogProps {
 }
 
 export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
+  const { firstName } = useProfile();
+
   const { id, endTime, duration, location, notes, startTime, type } = sleep;
 
   const [isInEditMode, setIsInEditMode] = useState(false);
@@ -86,7 +89,7 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
             helperText={durationErrorText}
             id='sleep-duration-field'
             onChange={updateDuration}
-            placeholder='(if breastsleep) for how long?'
+            placeholder={`How long did ${firstName} sleep?`}
             slotProps={{
               inputLabel: {
                 shrink: true,
@@ -139,7 +142,7 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
             className='skinny-text-field'
             id='sleep-notes-field'
             onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedNotes(event.target.value)}
-            placeholder='include any relevant details'
+            placeholder={`Any additional details about ${firstName}'s sleep?`}
             slotProps={{
               inputLabel: {
                 shrink: true,

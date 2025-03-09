@@ -4,6 +4,7 @@ import { isNil } from 'lodash';
 import { ChangeEvent, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
+import { useProfile } from '@contexts';
 import { Feeding, FeedingMethod, FeedingSide } from '@models';
 import { deleteFeeding, updateFeeding } from '@services';
 import { formatTimestamp, toCapitalCase } from '@utils';
@@ -14,6 +15,8 @@ interface FeedingLogProps {
 }
 
 export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
+  const { firstName } = useProfile();
+
   const { id, amount, duration, method, notes, side, timestamp } = feeding;
   const isBreastFeeding = method === FeedingMethod.BREAST;
 
@@ -131,7 +134,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
               helperText={durationErrorText}
               id='feeding-duration-field'
               onChange={updateDuration}
-              placeholder='(if breastfeeding) for how long?'
+              placeholder={`How long did ${firstName} feed (if breastfeeding)?`}
               slotProps={{
                 inputLabel: {
                   shrink: true,
@@ -174,7 +177,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
               helperText={amountErrorText}
               id='feeding-amount-field'
               onChange={updateAmount}
-              placeholder='(if bottlefeeding) how much?'
+              placeholder={`How much did ${firstName} drink (if bottlefeeding)?`}
               slotProps={{
                 inputLabel: {
                   shrink: true,
@@ -190,7 +193,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
             className='skinny-text-field'
             id='feeding-notes-field'
             onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedNotes(event.target.value)}
-            placeholder='include any relevant details'
+            placeholder={`Any additional details about ${firstName}'s feeding?`}
             slotProps={{
               inputLabel: {
                 shrink: true,

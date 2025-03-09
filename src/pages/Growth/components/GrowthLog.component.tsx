@@ -3,6 +3,7 @@ import { x } from '@xstyled/styled-components';
 import { ChangeEvent, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
+import { useProfile } from '@contexts';
 import { Growth } from '@models';
 import { deleteGrowth, updateGrowth } from '@services';
 import { formatTimestamp } from '@utils';
@@ -13,6 +14,8 @@ interface GrowthLogProps {
 }
 
 export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
+  const { firstName } = useProfile();
+
   const { id, headCircumference, height, notes, weight, timestamp } = growth;
 
   const [isInEditMode, setIsInEditMode] = useState(false);
@@ -66,7 +69,7 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
             className='skinny-text-field'
             id='growth-head-circumference-field'
             onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedHeadCircumference(Number(event.target.value))}
-            placeholder='how big is that dome?'
+            placeholder={`How big is ${firstName}'s head in centimeters?`}
             slotProps={{
               inputLabel: {
                 shrink: true,
@@ -81,7 +84,7 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
             className='skinny-text-field'
             id='growth-height-field'
             onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedHeight(Number(event.target.value))}
-            placeholder='how tall is peanut?'
+            placeholder={`How tall is ${firstName} in inches?`}
             slotProps={{
               inputLabel: {
                 shrink: true,
@@ -96,7 +99,7 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
             className='skinny-text-field'
             id='growth-weight-field'
             onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedWeight(Number(event.target.value))}
-            placeholder='how much does peanut weigh?'
+            placeholder={`How much does ${firstName} weigh in pounds?`}
             slotProps={{
               inputLabel: {
                 shrink: true,
@@ -111,7 +114,7 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
             className='skinny-text-field'
             id='growth-notes-field'
             onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedNotes(event.target.value)}
-            placeholder='include any relevant details'
+            placeholder={`Any additional details about ${firstName}'s growth?`}
             slotProps={{
               inputLabel: {
                 shrink: true,

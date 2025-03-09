@@ -2,6 +2,7 @@ import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
 import { Form } from '@components';
+import { useProfile } from '@contexts';
 import { WasteColor, WasteConsistency, WasteType } from '@models';
 import { createNewChanging } from '@services';
 import { toCapitalCase } from '@utils';
@@ -11,6 +12,8 @@ type ChangingFormProps = {
 }
 
 export const ChangingForm = ({ onSuccess }: ChangingFormProps) => {
+  const { firstName } = useProfile();
+
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   const [color, setColor] = useState<WasteColor>(WasteColor.NOT_APPLICABLE);
   const [consistency, setConsistency] = useState<WasteConsistency>(WasteConsistency.NOT_APPLICABLE);
@@ -24,7 +27,10 @@ export const ChangingForm = ({ onSuccess }: ChangingFormProps) => {
     setType(WasteType.WET);
   };
 
-  const onDiscard = () => clearState();
+  const onDiscard = () => {
+    clearState();
+    setIsFormExpanded(false);
+  };
 
   const onSubmit = async () => {
     await createNewChanging({ color, consistency, notes, type, timestamp: new Date().toISOString() });
@@ -98,7 +104,7 @@ export const ChangingForm = ({ onSuccess }: ChangingFormProps) => {
         id='changing-notes-field'
         label='Notes'
         onChange={(event: ChangeEvent<HTMLInputElement>) => setNotes(event.target.value)}
-        placeholder='include any relevant details'
+        placeholder={`Any additional details about ${firstName}'s diaper change?`}
         slotProps={{
           inputLabel: {
             shrink: true,
