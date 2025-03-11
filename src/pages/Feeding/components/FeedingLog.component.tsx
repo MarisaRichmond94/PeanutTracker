@@ -1,83 +1,115 @@
-import { CardContent, Divider, FormControl, FormHelperText, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+/* eslint-disable no-case-declarations */
+import { CardContent, Divider, FormControl, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { isNil } from 'lodash';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
 import { useProfile } from '@contexts';
-import { Feeding, FeedingMethod, FeedingSide } from '@models';
-import { deleteFeeding, updateFeeding } from '@services';
-import { formatTimestamp, toCapitalCase } from '@utils';
+import { BottleFeeding, BreastFeeding, Feeding, FeedingSide } from '@models';
+import { deleteBottleFeeding, deleteBreastFeeding, deleteFeeding, updateBottleFeeding, updateBreastFeeding, updateFeeding } from '@services';
+import { FeedingEntity, FeedingMethod } from '@types';
+import { formatTimestamp, getTitle, toCapitalCase } from '@utils';
 
 interface FeedingLogProps {
-  feeding: Feeding;
+  feeding: FeedingEntity;
   onSuccess: () => void;
 }
 
 export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   const { firstName } = useProfile();
 
-  const { id, amount, duration, method, notes, side, timestamp } = feeding;
-  const isBreastFeeding = method === FeedingMethod.BREAST;
+  const { id, method, notes, timestamp } = feeding;
 
-  const [isInEditMode, setIsInEditMode] = useState(false);
-  const [updatedAmount, setUpdatedAmount] = useState<number | undefined>(amount);
+  // bottlefeeding only
+  const [updatedAmount, setUpdatedAmount] = useState<number | undefined>();
   const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
-  const [updatedDuration, setUpdatedDuration] = useState<number | undefined>(duration);
+  // breastfeeding only
+  const [updatedDuration, setUpdatedDuration] = useState<number | undefined>();
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
+  const [updatedSide, setUpdatedSide] = useState<FeedingSide | undefined>();
+  // feeding only
+  const [updatedFood, setUpdatedFood] = useState<string | undefined>();
+  const [foodErrorText, setFoodErrorText] = useState<string | undefined>();
+  const [updatedReaction, setUpdatedReaction] = useState<string | undefined>();
+  const [reactionErrorText, setReactionErrorText] = useState<string | undefined>();
+  // shared state
+  const [isInEditMode, setIsInEditMode] = useState(false);
   const [updatedNotes, setUpdatedNotes] = useState<string | undefined>(notes);
-  const [updatedSide, setUpdatedSide] = useState<FeedingSide | undefined>(side);
-  const [sideErrorText, setSideErrorText] = useState<string | undefined>();
+
+  const resetUniqueState = () => {
+    switch (method) {
+      case FeedingMethod.BOTTLE:
+        const { amount } = feeding as BottleFeeding;
+        setUpdatedAmount(amount);
+        break;
+      case FeedingMethod.BREAST:
+        const { duration, side } = feeding as BreastFeeding;
+        setUpdatedDuration(duration);
+        setUpdatedSide(side);
+        break;
+      case FeedingMethod.FOOD:
+        const { food, reaction } = feeding as Feeding;
+        setUpdatedFood(food);
+        setUpdatedReaction(reaction);
+        break;
+    }
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { resetUniqueState(); }, []);
 
   const clearErrors = () => {
     setAmountErrorText(undefined);
     setDurationErrorText(undefined);
-    setSideErrorText(undefined);
+    setFoodErrorText(undefined);
+    setReactionErrorText(undefined);
   };
 
   const onDelete = async () => {
-    await deleteFeeding(id);
+    switch (method) {
+      case FeedingMethod.BOTTLE:
+        await deleteBottleFeeding(id);
+        break;
+      case FeedingMethod.BREAST:
+        await deleteBreastFeeding(id);
+        break;
+      case FeedingMethod.FOOD:
+        await deleteFeeding(id);
+        break;
+    }
     await onSuccess();
   };
 
   const onDiscard = () => {
-    setUpdatedAmount(amount);
-    setUpdatedDuration(duration);
     setUpdatedNotes(notes);
-    setUpdatedSide(side);
     setIsInEditMode(false);
-  };
-
-  const handleValidation = (): boolean => {
-    clearErrors();
-    let hasError = false;
-
-    if (method === FeedingMethod.BREAST) {
-      if (isNil(duration) || duration <= 0) {
-        setDurationErrorText('Missing required duration');
-        hasError = true;
-      }
-      if (side === FeedingSide.N_A) {
-        setSideErrorText('Missing required side');
-        hasError = true;
-      }
-    } else {
-      if (isNil(amount) || amount <= 0) {
-        setAmountErrorText('Missing required amount');
-        hasError = true;
-      }
-    }
-
-    return hasError;
+    resetUniqueState();
   };
 
   const onUpdate = async () => {
-    if (handleValidation()) return;
-    if (method === FeedingMethod.BREAST) {
-      await updateFeeding(id, { duration: updatedDuration, side: updatedSide, notes: updatedNotes });
-    } else {
-      await updateFeeding(id, { amount: updatedAmount, notes: updatedNotes });
+    clearErrors();
+
+    switch (method) {
+      case FeedingMethod.BOTTLE:
+        if (isNil(updatedAmount) || updatedAmount <= 0) {
+          setAmountErrorText('Missing required amount');
+          return;
+        }
+        await updateBottleFeeding(id, { amount: updatedAmount, notes: updatedNotes });
+        break;
+      case FeedingMethod.BREAST:
+        if (isNil(updatedDuration) || updatedDuration <= 0) {
+          setDurationErrorText('Missing required duration');
+          return;
+        }
+        await updateBreastFeeding(id, { duration: updatedDuration, side: updatedSide, notes: updatedNotes });
+        break;
+      case FeedingMethod.FOOD:
+        await updateFeeding(id, { })
+        break;
     }
+
     await onSuccess();
     setIsInEditMode(false);
   };
@@ -92,24 +124,152 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
     setUpdatedDuration(Number(event.target.value));
   };
 
-  const updateSide = (event: SelectChangeEvent<FeedingSide>) => {
-    setSideErrorText(undefined);
-    setUpdatedSide(event.target.value as FeedingSide);
+  const getContentFields = () => {
+    switch (method) {
+      case FeedingMethod.BOTTLE:
+        const { amount } = feeding as BottleFeeding;
+        return (
+          <>
+            <LogRow field='Amount' value={amount} />
+          </>
+        );
+      case FeedingMethod.BREAST:
+        const { duration, side } = feeding as BreastFeeding;
+        return (
+          <>
+            <LogRow field='Duration' value={duration} />
+            <LogRow field='Side' value={side} />
+          </>
+        );
+      case FeedingMethod.FOOD:
+        const { food, reaction } = feeding as Feeding;
+        return (
+          <>
+            <LogRow field='Food' value={food} />
+            <LogRow field='Reaction' value={reaction} />
+          </>
+        );
+    }
+  };
+
+  const getEditableContentFields = () => {
+    switch (method) {
+      case FeedingMethod.BOTTLE:
+        return (
+          <>
+            <EditLogRow field='Amount' value={
+              <TextField
+                className='skinny-text-field'
+                error={!isNil(amountErrorText)}
+                helperText={amountErrorText}
+                id='feeding-amount-field'
+                onChange={updateAmount}
+                placeholder={`How much did ${firstName} drink?`}
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='number'
+                value={updatedAmount}
+              />
+            } />
+          </>
+        );
+      case FeedingMethod.BREAST:
+        return (
+          <>
+            <EditLogRow field='Duration' value={
+              <TextField
+                className='skinny-text-field'
+                error={!isNil(durationErrorText)}
+                helperText={durationErrorText}
+                id='feeding-duration-field'
+                onChange={updateDuration}
+                placeholder={`How long did ${firstName} nurse?`}
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='number'
+                value={updatedDuration}
+              />
+            } />
+            <EditLogRow field='Side' value={
+              <FormControl fullWidth>
+                <Select
+                  className='skinny-select'
+                  labelId='feeding-side-select-label'
+                  id='feeding-side-select'
+                  value={updatedSide}
+                  onChange={(event: SelectChangeEvent<FeedingSide>) => setUpdatedSide(event.target.value as FeedingSide)}
+                >
+                  {
+                    Object.values(FeedingSide).map((it, index) =>
+                      <MenuItem key={`feeding-side-${index}`} value={it}>
+                        {toCapitalCase(it)}
+                      </MenuItem>
+                    )
+                  }
+                </Select>
+              </FormControl>
+            } />
+          </>
+        );
+      case FeedingMethod.FOOD:
+        return (
+          <>
+            <EditLogRow field='Food' value={
+              <TextField
+                className='skinny-text-field'
+                error={!isNil(foodErrorText)}
+                helperText={foodErrorText}
+                id='feeding-food-field'
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedFood(event.target.value)}
+                placeholder={`What food did ${firstName} eat?`}
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='string'
+                value={updatedFood}
+              />
+            } />
+            <EditLogRow field='Reaction' value={
+              <TextField
+                className='skinny-text-field'
+                error={!isNil(reactionErrorText)}
+                helperText={reactionErrorText}
+                id='feeding-reaction-field'
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedReaction(event.target.value)}
+                placeholder={`How did ${firstName} react to this food?`}
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='string'
+                value={updatedReaction}
+              />
+            } />
+          </>
+        );
+    }
   };
 
   const getCardContent = () => (
     <CardContent>
       <x.div display='flex' justifyContent='center'>
         <Typography variant='h6'>
-          <b>{isBreastFeeding ? 'Breast Feeding' : 'Bottle Feeding'}</b>
+          <b>{getTitle(method)}</b>
         </Typography>
       </x.div>
       <Divider sx={{ borderColor: 'white', my: 1 }} />
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatTimestamp(timestamp)} />
-        {isBreastFeeding && <LogRow field='Duration' value={duration} />}
-        {isBreastFeeding && <LogRow field='Side' value={side} />}
-        {!isBreastFeeding && <LogRow field='Amount' value={amount} />}
+        {getContentFields()}
         <LogRow field='Notes' value={notes} />
       </x.div>
     </CardContent>
@@ -119,75 +279,13 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
     <CardContent>
       <x.div display='flex' justifyContent='center'>
         <Typography variant='h6'>
-          <b>{isBreastFeeding ? 'Breast Feeding' : 'Bottle Feeding'}</b>
+          <b>{getTitle(method)}</b>
         </Typography>
       </x.div>
       <Divider sx={{ borderColor: 'white', my: 1 }} />
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatTimestamp(timestamp)} />
-        {
-          isBreastFeeding &&
-          <EditLogRow field='Duration' value={
-            <TextField
-              className='skinny-text-field'
-              error={!isNil(durationErrorText)}
-              helperText={durationErrorText}
-              id='feeding-duration-field'
-              onChange={updateDuration}
-              placeholder={`How long did ${firstName} feed (if breastfeeding)?`}
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              type='number'
-              value={updatedDuration}
-            />
-          } />
-        }
-        {
-          isBreastFeeding &&
-          <EditLogRow field='Side' value={
-            <FormControl error={!isNil(sideErrorText)} fullWidth>
-              <Select
-                className='skinny-select'
-                labelId='feeding-side-select-label'
-                id='feeding-side-select'
-                value={updatedSide}
-                onChange={updateSide}
-              >
-                {
-                  Object.values(FeedingSide).map((it, index) =>
-                    <MenuItem key={`feeding-side-${index}`} value={it}>
-                      {toCapitalCase(it)}
-                    </MenuItem>
-                  )
-                }
-              </Select>
-              {!isNil(sideErrorText) && <FormHelperText>{sideErrorText}</FormHelperText>}
-            </FormControl>
-          } />
-        }
-        {
-          !isBreastFeeding &&
-          <EditLogRow field='Amount' value={
-            <TextField
-              className='skinny-text-field'
-              error={!isNil(amountErrorText)}
-              helperText={amountErrorText}
-              id='feeding-amount-field'
-              onChange={updateAmount}
-              placeholder={`How much did ${firstName} drink (if bottlefeeding)?`}
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              type='number'
-              value={updatedAmount}
-            />
-          } />
-        }
+        {getEditableContentFields()}
         <EditLogRow field='Notes' value={
           <TextField
             className='skinny-text-field'

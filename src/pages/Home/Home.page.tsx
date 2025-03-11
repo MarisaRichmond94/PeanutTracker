@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import './Home.scss';
 
 import BabyChangingStationRoundedIcon from '@mui/icons-material/BabyChangingStationRounded';
@@ -11,10 +12,10 @@ import { isEmpty, isNil } from 'lodash';
 import { ReactNode, useEffect, useState } from 'react';
 
 import { EmptyState, LoadingState } from '@components';
-import { Changing, Feeding, FeedingMethod, Growth, Sleep, SleepType, WasteType } from '@models';
-import { getTodayChangings, getTodayFeedings, getTodayGrowths, getTodaySleeps } from '@services';
-import { LogEntry, LogType } from '@types';
-import { formatShortDate, getTimeOnly, toCapitalCase } from '@utils';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep, SleepType, WasteType } from '@models';
+import { getTodayBottleFeedings, getTodayBreastFeedings, getTodayChangings, getTodayFeedings, getTodayGrowths, getTodaySleeps } from '@services';
+import { FeedingEntity, FeedingMethod, LogEntry, LogType } from '@types';
+import { formatShortDate, getTimeOnly, getTitle, toCapitalCase } from '@utils';
 
 import { DailySnapshot, TimelineView } from './components';
 
@@ -24,6 +25,8 @@ enum DailyViewType {
 }
 
 export const HomePage = () => {
+  const [bottleFeedings, setBottleFeedings] = useState<BottleFeeding[] | undefined>();
+  const [breastFeedings, setBreastFeedings] = useState<BreastFeeding[] | undefined>();
   const [changings, setChangings] = useState<Changing[] | undefined>();
   const [feedings, setFeedings] = useState<Feeding[] | undefined>();
   const [growths, setGrowths] = useState<Growth[] | undefined>();
@@ -31,10 +34,14 @@ export const HomePage = () => {
   const [view, setView] = useState<DailyViewType>(DailyViewType.UNIFIED);
 
   const loadDailySnapshot = async () => {
+    const todaysBottleFeedings = await getTodayBottleFeedings();
+    const todaysBreastFeedings = await getTodayBreastFeedings();
     const todaysChangings = await getTodayChangings();
     const todaysFeedings = await getTodayFeedings();
     const todaysGrowths = await getTodayGrowths();
     const todaysSleeps = await getTodaySleeps();
+    setBottleFeedings(todaysBottleFeedings);
+    setBreastFeedings(todaysBreastFeedings);
     setChangings(todaysChangings);
     setFeedings(todaysFeedings);
     setGrowths(todaysGrowths);
@@ -76,21 +83,58 @@ export const HomePage = () => {
     });
   };
 
+  const getCombinedFeedings = (): FeedingEntity[] => {
+    const allFeedings = [
+      ...(bottleFeedings || []),
+      ...(breastFeedings || []),
+      ...(feedings || []),
+    ];
+    allFeedings.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    return allFeedings;
+  };
+
+  const getContentFields = (feeding: FeedingEntity) => {
+    switch (feeding.method) {
+      case FeedingMethod.BOTTLE:
+        const { amount } = feeding as BottleFeeding;
+        return (
+          <>
+            <b>Amount:</b> {`${amount} ounces`}<br />
+          </>
+        );
+      case FeedingMethod.BREAST:
+        const { duration, side } = feeding as BreastFeeding;
+        return (
+          <>
+            <b>Duration:</b> {`${duration} minutes`}<br />
+            <b>Side:</b> {side}<br />
+          </>
+        );
+      case FeedingMethod.FOOD:
+        const { food, reaction } = feeding as Feeding;
+        return (
+          <>
+            <b>Food:</b> {food}<br />
+            <b>Reaction:</b> {reaction}<br />
+          </>
+        );
+    }
+  };
+
   const generateFeedingLogs = () => {
-    if (isNil(feedings)) return <LoadingState />;
-    if (isEmpty(feedings)) return <EmptyState icon={<NoMealsRoundedIcon />} type='Feeding' />;
-    return feedings.map((feeding) => {
-      const { id, amount, duration, method, notes, side, timestamp } = feeding;
-      const isBreastFeeding = method === FeedingMethod.BREAST;
+    const allFeedings = getCombinedFeedings();
+    if (isNil(allFeedings)) return <LoadingState />;
+    if (isEmpty(allFeedings)) return <EmptyState icon={<NoMealsRoundedIcon />} type='Feeding' />;
+    return allFeedings.map((feeding) => {
+      const { id, method, notes, timestamp } = feeding;
       return generateLog(
         <x.div key={`feeding-log-${id}`}>
           <x.h3 margin='0'>
-            {isBreastFeeding ? 'Breast Fed' : 'Bottle Fed'}
+            {getTitle(method)}
           </x.h3>
           <x.p margin='0'>
-            {isBreastFeeding && <><b>Duration:</b> {`${duration} minutes`}<br /></>}
-            {isBreastFeeding && <><b>Side:</b> {side}<br /></>}
-            {!isBreastFeeding && <><b>Amount:</b> {`${amount} ounces`}<br /></>}
+            {getContentFields(feeding)}
             <b>Notes:</b> {notes}
           </x.p>
           <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
@@ -143,8 +187,10 @@ export const HomePage = () => {
 
   const getCombinedLogs = (): LogEntry[] => {
     const allLogs = [
-      ...(feedings?.map((f) => ({ ...f, time: getTimeOnly(f.timestamp), logType: LogType.FEEDING })) || []),
+      ...(bottleFeedings?.map((f) => ({ ...f, time: getTimeOnly(f.timestamp), logType: LogType.BOTTLE_FEEDING })) || []),
+      ...(breastFeedings?.map((f) => ({ ...f, time: getTimeOnly(f.timestamp), logType: LogType.BREAST_FEEDING })) || []),
       ...(changings?.map((c) => ({ ...c, time: getTimeOnly(c.timestamp), logType: LogType.CHANGING })) || []),
+      ...(feedings?.map((f) => ({ ...f, time: getTimeOnly(f.timestamp), logType: LogType.FEEDING })) || []),
       ...(growths?.map((g) => ({ ...g, time: getTimeOnly(g.timestamp), logType: LogType.GROWTH })) || []),
       ...(sleeps?.map((s) => ({ ...s, timestamp: s.startTime, time: getTimeOnly(s.startTime), logType: LogType.SLEEP })) || []),
     ];
@@ -165,7 +211,7 @@ export const HomePage = () => {
           </x.div>
         );
       case DailyViewType.UNIFIED:
-        // eslint-disable-next-line no-case-declarations
+
         const logs = getCombinedLogs();
         if (isNil(logs)) return <LoadingState />;
         if (isEmpty(logs)) return <EmptyState icon={<FolderOffRoundedIcon />} type='Daily' />;

@@ -1,4 +1,4 @@
-import { CardContent, Divider, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+import { CardContent, Divider, FormControl, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import { ChangeEvent, useState } from 'react';
 

@@ -5,27 +5,46 @@ import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
 import { EmptyState, LoadingState } from '@components';
-import { Feeding } from '@models';
-import { getFeedings } from '@services';
+import { getBottleFeedings, getBreastFeedings, getFeedings } from '@services';
+import { FeedingEntity } from '@types';
 
 import { FeedingForm, FeedingLog } from './components';
+import { BottleFeeding, BreastFeeding, Feeding } from '@models';
 
 export const FeedingPage = () => {
+  const [bottleFeedings, setBottleFeedings] = useState<BottleFeeding[] | undefined>();
+  const [breastFeedings, setBreastFeedings] = useState<BreastFeeding[] | undefined>();
   const [feedings, setFeedings] = useState<Feeding[] | undefined>();
 
   const loadAllFeedings = async () => {
+    const allBottleFeedings = await getBottleFeedings();
+    const allBreastFeedings = await getBreastFeedings();
     const allFeedings = await getFeedings();
+    setBottleFeedings(allBottleFeedings);
+    setBreastFeedings(allBreastFeedings);
     setFeedings(allFeedings);
+  };
+
+  const getCombinedFeedings = (): FeedingEntity[] => {
+    const allFeedings = [
+      ...(bottleFeedings || []),
+      ...(breastFeedings || []),
+      ...(feedings || []),
+    ];
+    allFeedings.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    return allFeedings;
   };
 
   useEffect(() => { void loadAllFeedings(); }, []);
 
   const renderFeedingLogs = () => {
-    if (isNil(feedings)) return <LoadingState />;
-    if (isEmpty(feedings)) return <EmptyState icon={<NoMealsRoundedIcon />} type='Feeding' />;
+    const combinedFeedings = getCombinedFeedings();
+    if (isNil(combinedFeedings)) return <LoadingState />;
+    if (isEmpty(combinedFeedings)) return <EmptyState icon={<NoMealsRoundedIcon />} type='Feeding' />;
     return (
       <x.div display='flex' flexDirection='column' gap='15px'>
-        {feedings.map((feeding, index) => <FeedingLog key={`feeding-${index}`} feeding={feeding} onSuccess={loadAllFeedings} />)}
+        {combinedFeedings.map((feeding, index) => <FeedingLog key={`feeding-${index}`} feeding={feeding} onSuccess={loadAllFeedings} />)}
       </x.div>
     );
   };

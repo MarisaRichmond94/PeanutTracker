@@ -8,7 +8,7 @@ import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
 import { isNil } from 'lodash';
 import { VerticalTimeline, VerticalTimelineElement }  from 'react-vertical-timeline-component';
 
-import { Changing, Feeding, FeedingMethod, Growth, Sleep, SleepType, WasteType } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep, SleepType, WasteType } from '@models';
 import { BaseLog, LogEntry, LogType } from '@types';
 import { toCapitalCase } from '@utils';
 
@@ -19,10 +19,12 @@ type TimelineViewProps = {
 export const TimelineView = ({ logs }: TimelineViewProps) => {
   const getIcon = (log: LogEntry) => {
     switch (log.logType) {
-      case LogType.CHANGING:
-        return <BabyChangingStationRoundedIcon />;
+      case LogType.BOTTLE_FEEDING:
+      case LogType.BREAST_FEEDING:
       case LogType.FEEDING:
         return <LocalDiningRoundedIcon />;
+      case LogType.CHANGING:
+        return <BabyChangingStationRoundedIcon />;
       case LogType.GROWTH:
         return <GrassRoundedIcon />;
       case LogType.SLEEP:
@@ -34,6 +36,33 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
     const { notes } = log;
 
     switch (log.logType) {
+      case LogType.BOTTLE_FEEDING:
+        const { amount } = log as BottleFeeding & BaseLog;
+        return (
+          <>
+            <h3 className='vertical-timeline-element-title'>
+              Bottle Feeding
+            </h3>
+            <p>
+              <b>Amount:</b> {`${amount} ounces`}<br />
+              <b>Notes:</b> {notes}
+            </p>
+          </>
+        );
+      case LogType.BREAST_FEEDING:
+        const { duration, side } = log as BreastFeeding & BaseLog;
+        return (
+          <>
+            <h3 className='vertical-timeline-element-title'>
+              Breast Feeding
+            </h3>
+            <p>
+              <b>Duration:</b> {`${duration} minutes`}<br />
+              <b>Side:</b> {side}<br />
+              <b>Notes:</b> {notes}
+            </p>
+          </>
+        );
       case LogType.CHANGING:
         const { color, consistency, type: changingType } = log as Changing & BaseLog;
         const formattedType = changingType === WasteType.BOTH ? 'Wet And Dirty' : changingType;
@@ -49,17 +78,15 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
           </>
         );
       case LogType.FEEDING:
-        const { amount, duration, method, side } = log as Feeding & BaseLog;
-        const isBreastFeeding = method === FeedingMethod.BREAST;
+        const { food, reaction } = log as Feeding & BaseLog;
         return (
           <>
             <h3 className='vertical-timeline-element-title'>
-              {isBreastFeeding ? 'Breast Fed' : 'Bottle Fed'}
+              Feeding
             </h3>
             <p>
-              {isBreastFeeding && <><b>Duration:</b> {`${duration} minutes`}<br /></>}
-              {isBreastFeeding && <><b>Side:</b> {side}<br /></>}
-              {!isBreastFeeding && <><b>Amount:</b> {`${amount} ounces`}<br /></>}
+              <b>Food:</b> {food}<br />
+              <b>Reaction:</b> {reaction}<br />
               <b>Notes:</b> {notes}
             </p>
           </>

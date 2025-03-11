@@ -1,10 +1,9 @@
 import { FeedingMethod } from '@types';
 
-export type Feeding = {
+export type BottleFeeding = {
   id: string;
-  food: string;
-  method: FeedingMethod.FOOD;
+  amount: number;
+  method: FeedingMethod.BOTTLE;
   notes?: string;
-  reaction: string;
   timestamp: string;
 }
