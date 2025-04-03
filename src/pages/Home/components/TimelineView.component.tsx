@@ -45,7 +45,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
             </h3>
             <p>
               <b>Amount:</b> {`${amount} ounces`}<br />
-              <b>Notes:</b> {notes}
+              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>
         );
@@ -59,7 +59,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
             <p>
               <b>Duration:</b> {`${duration} minutes`}<br />
               <b>Side:</b> {side}<br />
-              <b>Notes:</b> {notes}
+              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>
         );
@@ -73,7 +73,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
             <p>
               {!isNil(color) && <><b>Color:</b> {color}<br/></>}
               {!isNil(consistency) && <><b>Consistency:</b> {consistency}<br/></>}
-              <b>Notes:</b> {notes}
+              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>
         );
@@ -87,7 +87,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
             <p>
               <b>Food:</b> {food}<br />
               <b>Reaction:</b> {reaction}<br />
-              <b>Notes:</b> {notes}
+              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>
         );
@@ -101,7 +101,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
               {!isNil(headCircumference) && <><b>Head Circumference:</b> {`${headCircumference} centimeters`}<br/></>}
               {!isNil(height) && <><b>Height:</b> {`${height} inches`}<br/></>}
               {!isNil(weight) && <><b>Weight:</b> {`${weight} pounds`}<br/></>}
-              <b>Notes:</b> {notes}
+              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>
         );
@@ -116,7 +116,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
             </h3>
             <p>
               <b>Duration:</b> {`${sleepDuration} minutes`}<br/>
-              <b>Notes:</b> {notes}
+              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>
         );

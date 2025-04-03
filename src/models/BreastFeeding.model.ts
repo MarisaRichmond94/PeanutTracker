@@ -11,6 +11,6 @@ export type BreastFeeding = {
   duration: number;
   side: FeedingSide;
   method: FeedingMethod.BREAST;
-  notes?: string;
+  notes: string | null;
   timestamp: string;
 }

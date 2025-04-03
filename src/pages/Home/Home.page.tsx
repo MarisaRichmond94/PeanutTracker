@@ -75,7 +75,7 @@ export const HomePage = () => {
           <x.p margin='0'>
             {!isNil(color) && <><b>Color:</b> {color}<br/></>}
             {!isNil(consistency) && <><b>Consistency:</b> {consistency}<br/></>}
-            <b>Notes:</b> {notes}
+            {!isNil(notes) && <><b>Notes:</b> {notes}</>}
           </x.p>
           <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
         </x.div>
@@ -88,7 +88,7 @@ export const HomePage = () => {
       ...(bottleFeedings || []),
       ...(breastFeedings || []),
       ...(feedings || []),
-    ];
+    ] as FeedingEntity[];
     allFeedings.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     return allFeedings;
@@ -135,7 +135,7 @@ export const HomePage = () => {
           </x.h3>
           <x.p margin='0'>
             {getContentFields(feeding)}
-            <b>Notes:</b> {notes}
+            {!isNil(notes) && <><b>Notes:</b> {notes}</>}
           </x.p>
           <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
         </x.div>
@@ -155,7 +155,7 @@ export const HomePage = () => {
             {!isNil(headCircumference) && <><b>Head Circumference:</b> {`${headCircumference} centimeters`}<br/></>}
             {!isNil(height) && <><b>Height:</b> {`${height} inches`}<br/></>}
             {!isNil(weight) && <><b>Weight:</b> {`${weight} pounds`}<br/></>}
-            <b>Notes:</b> {notes}
+            {!isNil(notes) && <><b>Notes:</b> {notes}</>}
           </x.p>
           <x.p margin='0'>{getTimeOnly(timestamp)}</x.p>
         </x.div>
@@ -177,7 +177,7 @@ export const HomePage = () => {
           </x.h3>
           <x.p margin='0'>
             <b>Duration:</b> {`${duration} minutes`}<br/>
-            <b>Notes:</b> {notes}
+            {!isNil(notes) && <><b>Notes:</b> {notes}</>}
           </x.p>
           <x.p margin='0'>{getTimeOnly(startTime)}</x.p>
         </x.div>

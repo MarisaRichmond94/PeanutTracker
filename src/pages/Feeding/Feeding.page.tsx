@@ -30,7 +30,7 @@ export const FeedingPage = () => {
       ...(bottleFeedings || []),
       ...(breastFeedings || []),
       ...(feedings || []),
-    ];
+    ] as FeedingEntity[];
     allFeedings.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     return allFeedings;

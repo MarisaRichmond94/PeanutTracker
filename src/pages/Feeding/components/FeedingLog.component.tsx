@@ -1,6 +1,8 @@
 /* eslint-disable no-case-declarations */
 import { CardContent, Divider, FormControl, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+import { MobileDateTimePicker } from '@mui/x-date-pickers';
 import { x } from '@xstyled/styled-components';
+import dayjs, { Dayjs } from 'dayjs';
 import { isNil } from 'lodash';
 import { ChangeEvent, useEffect, useState } from 'react';
 
@@ -9,7 +11,7 @@ import { useProfile } from '@contexts';
 import { BottleFeeding, BreastFeeding, Feeding, FeedingSide } from '@models';
 import { deleteBottleFeeding, deleteBreastFeeding, deleteFeeding, updateBottleFeeding, updateBreastFeeding, updateFeeding } from '@services';
 import { FeedingEntity, FeedingMethod } from '@types';
-import { formatTimestamp, getTitle, toCapitalCase } from '@utils';
+import { addMinutes, formatTimestamp, getTitle, toCapitalCase } from '@utils';
 
 interface FeedingLogProps {
   feeding: FeedingEntity;
@@ -25,9 +27,10 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   const [updatedAmount, setUpdatedAmount] = useState<number | undefined>();
   const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
   // breastfeeding only
-  const [updatedDuration, setUpdatedDuration] = useState<number | undefined>();
+  const [updatedEndTime, setUpdatedEndTime] = useState<Dayjs>(dayjs(timestamp));
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
   const [updatedSide, setUpdatedSide] = useState<FeedingSide | undefined>();
+  const [updatedStartTime, setUpdatedStartTime] = useState<Dayjs>(dayjs(timestamp));
   // feeding only
   const [updatedFood, setUpdatedFood] = useState<string | undefined>();
   const [foodErrorText, setFoodErrorText] = useState<string | undefined>();
@@ -37,6 +40,14 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   const [isInEditMode, setIsInEditMode] = useState(false);
   const [updatedNotes, setUpdatedNotes] = useState<string | undefined>(notes);
 
+  useEffect(() => {
+    if (method === FeedingMethod.BREAST) {
+      const { duration } = feeding;
+      setUpdatedEndTime(dayjs(addMinutes(timestamp, duration)));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feeding]);
+
   const resetUniqueState = () => {
     switch (method) {
       case FeedingMethod.BOTTLE:
@@ -44,8 +55,9 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
         setUpdatedAmount(amount);
         break;
       case FeedingMethod.BREAST:
-        const { duration, side } = feeding as BreastFeeding;
-        setUpdatedDuration(duration);
+        const { duration, side, timestamp } = feeding as BreastFeeding;
+        setUpdatedStartTime(dayjs(timestamp));
+        setUpdatedEndTime(dayjs(addMinutes(timestamp, duration)));
         setUpdatedSide(side);
         break;
       case FeedingMethod.FOOD:
@@ -99,11 +111,15 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
         await updateBottleFeeding(id, { amount: updatedAmount, notes: updatedNotes });
         break;
       case FeedingMethod.BREAST:
-        if (isNil(updatedDuration) || updatedDuration <= 0) {
-          setDurationErrorText('Missing required duration');
+        if (updatedStartTime.isAfter(updatedEndTime)) {
+          setDurationErrorText('Start time cannot come after end time');
           return;
         }
-        await updateBreastFeeding(id, { duration: updatedDuration, side: updatedSide, notes: updatedNotes });
+        if (updatedStartTime.isSame(updatedEndTime)) {
+          setDurationErrorText('End time cannot match start time');
+          return;
+        }
+        await updateBreastFeeding(id, { duration: updatedEndTime.diff(updatedStartTime, 'minute'), side: updatedSide, notes: updatedNotes, timestamp: updatedStartTime.toISOString() });
         break;
       case FeedingMethod.FOOD:
         await updateFeeding(id, { })
@@ -119,12 +135,6 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
     setUpdatedAmount(Number(event.target.value))
   };
 
-  const updateDuration = (event: ChangeEvent<HTMLInputElement>) => {
-    setDurationErrorText(undefined);
-    const nextValue = Number(event.target.value);
-    setUpdatedDuration(nextValue > 0 ? nextValue : undefined);
-  };
-
   const getContentFields = () => {
     switch (method) {
       case FeedingMethod.BOTTLE:
@@ -138,7 +148,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
         const { duration, side } = feeding as BreastFeeding;
         return (
           <>
-            <LogRow field='Duration' value={duration} />
+            <LogRow field='Duration' value={`${duration} minutes`} />
             <LogRow field='Side' value={side} />
           </>
         );
@@ -180,21 +190,30 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
       case FeedingMethod.BREAST:
         return (
           <>
-            <EditLogRow field='Duration' value={
-              <TextField
-                className='skinny-text-field'
-                error={!isNil(durationErrorText)}
-                helperText={durationErrorText}
-                id='feeding-duration-field'
-                onChange={updateDuration}
-                placeholder={`How long did ${firstName} nurse?`}
+            <EditLogRow field='Start' value={
+              <MobileDateTimePicker
+                value={updatedStartTime}
+                onChange={(newValue) => setUpdatedStartTime(newValue ?? dayjs())}
                 slotProps={{
-                  inputLabel: {
-                    shrink: true,
+                  textField: {
+                    className: 'skinny-text-field',
+                    error: updatedStartTime.isAfter(updatedEndTime),
+                    helperText: updatedStartTime.isAfter(updatedEndTime) ? durationErrorText : undefined
                   },
                 }}
-                type='number'
-                value={updatedDuration}
+              />
+            } />
+            <EditLogRow field='End' value={
+              <MobileDateTimePicker
+                value={updatedEndTime}
+                onChange={(newValue) => setUpdatedEndTime(newValue ?? dayjs())}
+                slotProps={{
+                  textField: {
+                    className: 'skinny-text-field',
+                    error: !isNil(durationErrorText) && updatedStartTime.isSame(updatedEndTime),
+                    helperText: updatedStartTime.isSame(updatedEndTime) ? durationErrorText : undefined
+                  },
+                }}
               />
             } />
             <EditLogRow field='Side' value={
@@ -271,7 +290,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatTimestamp(timestamp)} />
         {getContentFields()}
-        <LogRow field='Notes' value={notes} />
+        {!isNil(notes) && <LogRow field='Notes' value={notes} />}
       </x.div>
     </CardContent>
   );

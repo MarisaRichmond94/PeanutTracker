@@ -4,6 +4,6 @@ export type BottleFeeding = {
   id: string;
   amount: number;
   method: FeedingMethod.BOTTLE;
-  notes?: string;
+  notes: string | null;
   timestamp: string;
 }

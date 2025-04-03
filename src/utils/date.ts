@@ -1,6 +1,12 @@
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 
+export const addMinutes = (timestamp: string | Date, minutes: number): string => {
+  const date = new Date(timestamp);
+  date.setMinutes(date.getMinutes() + minutes);
+  return date.toISOString();
+};
+
 export const formatTimestamp = (timestamp: string | Date): string => {
   const date = new Date(timestamp);
 

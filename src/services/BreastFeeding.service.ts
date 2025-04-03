@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, Timestamp, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where } from 'firebase/firestore';
 
 import { db } from '@firebase';
 import { BreastFeeding } from '@models';
@@ -6,10 +6,7 @@ import { BreastFeeding } from '@models';
 const breastFeedingCollection = collection(db, 'breast_feedings');
 
 export const createNewBreastFeeding = async (feeding: Omit<BreastFeeding, 'id'>) => {
-  await addDoc(breastFeedingCollection, {
-    ...feeding,
-    timestamp: Timestamp.now().toDate().toISOString(),
-  });
+  await addDoc(breastFeedingCollection, { ...feeding });
 };
 
 export const getBreastFeedings = async (): Promise<BreastFeeding[]> => {
