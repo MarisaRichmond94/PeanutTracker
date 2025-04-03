@@ -8,7 +8,7 @@ import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
 import { isNil } from 'lodash';
 import { VerticalTimeline, VerticalTimelineElement }  from 'react-vertical-timeline-component';
 
-import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep, SleepLocation, SleepType, WasteType } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep, SleepLocation, SleepType, WasteColor, WasteConsistency, WasteType } from '@models';
 import { BaseLog, LogEntry, LogType } from '@types';
 import { formatMinutesToHoursAndMinutes, toCapitalCase } from '@utils';
 
@@ -71,8 +71,8 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
           <>
             <h3 className='vertical-timeline-element-title'>{toCapitalCase(`Changed ${formattedType} Diaper`)}</h3>
             <p>
-              {!isNil(color) && <><b>Color:</b> {color}<br/></>}
-              {!isNil(consistency) && <><b>Consistency:</b> {consistency}<br/></>}
+              {color !== WasteColor.NOT_APPLICABLE && <><b>Color:</b> {color}<br/></>}
+              {consistency !== WasteConsistency.NOT_APPLICABLE && <><b>Consistency:</b> {consistency}<br/></>}
               {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>

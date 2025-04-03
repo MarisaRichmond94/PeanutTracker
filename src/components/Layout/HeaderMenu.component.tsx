@@ -19,7 +19,7 @@ export const HeaderMenu = ({ setShowHeaderMenu }: { setShowHeaderMenu: (showHead
     <x.div display='flex' flexDirection='column' gap='20px' padding='20px'>
       <SectionHeader onClick={navigateBackHome} text='Menu' />
       <HeaderMenuButton page={Page.PROFILE} text='Profile' setShowHeaderMenu={setShowHeaderMenu} />
-      <HeaderMenuButton page={Page.PROGRESS} text='Progress' setShowHeaderMenu={setShowHeaderMenu} />
+      <HeaderMenuButton page={Page.TRENDS} text='Trends' setShowHeaderMenu={setShowHeaderMenu} />
       <HeaderMenuButton page={Page.NOTES} text='Notes' setShowHeaderMenu={setShowHeaderMenu} />
       <SecondaryContainedButton onClick={signOutWithGoogle} size='large' variant='contained'>
         Sign Out

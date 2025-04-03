@@ -149,7 +149,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
         return (
           <>
             <LogRow field='Duration' value={`${duration} minutes`} />
-            <LogRow field='Side' value={side} />
+            <LogRow field='Side' value={toCapitalCase(side)} />
           </>
         );
       case FeedingMethod.FOOD:

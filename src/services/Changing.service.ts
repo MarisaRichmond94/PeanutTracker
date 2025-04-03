@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, Timestamp, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where } from 'firebase/firestore';
 
 import { db } from '@firebase';
 import { Changing } from '@models';
@@ -6,10 +6,7 @@ import { Changing } from '@models';
 const changingCollection = collection(db, 'changings');
 
 export const createNewChanging = async (changing: Omit<Changing, 'id'>) => {
-  await addDoc(changingCollection, {
-    ...changing,
-    timestamp: Timestamp.now().toDate().toISOString(),
-  });
+  await addDoc(changingCollection, { ...changing });
 };
 
 export const getChangings = async (): Promise<Changing[]> => {

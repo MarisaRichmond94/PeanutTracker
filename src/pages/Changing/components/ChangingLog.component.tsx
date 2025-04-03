@@ -1,5 +1,7 @@
 import { CardContent, Divider, FormControl, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+import { MobileDateTimePicker } from '@mui/x-date-pickers';
 import { x } from '@xstyled/styled-components';
+import dayjs, { Dayjs } from 'dayjs';
 import { isNil } from 'lodash';
 import { ChangeEvent, useState } from 'react';
 
@@ -23,6 +25,7 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
   const [updatedColor, setUpdatedColor] = useState<WasteColor>(color);
   const [updatedConsistency, setUpdatedConsistency] = useState<WasteConsistency>(consistency);
   const [updatedNotes, setUpdatedNotes] = useState<string | null>(notes);
+  const [updatedTimestamp, setUpdatedTimestamp] = useState<Dayjs>(dayjs(timestamp));
   const [updatedType, setUpdatedType] = useState<WasteType>(type);
 
   const onDelete = async () => {
@@ -34,6 +37,7 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
     setUpdatedColor(color);
     setUpdatedConsistency(consistency);
     setUpdatedNotes(notes);
+    setUpdatedTimestamp(dayjs(timestamp));
     setUpdatedType(type);
     setIsInEditMode(false);
   };
@@ -59,9 +63,9 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
       <Divider sx={{ borderColor: 'white', my: 1 }} />
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatTimestamp(timestamp)} />
-        <LogRow field='Type' value={type} />
-        <LogRow field='Color' value={color} />
-        <LogRow field='Consistency' value={consistency} />
+        <LogRow field='Type' value={toCapitalCase(type)} />
+        {color !== WasteColor.NOT_APPLICABLE && <LogRow field='Color' value={toCapitalCase(color)} />}
+        {consistency !== WasteConsistency.NOT_APPLICABLE && <LogRow field='Consistency' value={toCapitalCase(consistency)} />}
         {!isNil(notes) && <LogRow field='Notes' value={notes} />}
       </x.div>
     </CardContent>
@@ -95,6 +99,13 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
               }
             </Select>
           </FormControl>
+        } />
+        <EditLogRow field='Type' value={
+          <MobileDateTimePicker
+            value={updatedTimestamp}
+            onChange={(newValue) => setUpdatedTimestamp(newValue ?? dayjs())}
+            slotProps={{ textField: { className: 'skinny-text-field' } }}
+          />
         } />
         <EditLogRow field='Color' value={
           <FormControl fullWidth>

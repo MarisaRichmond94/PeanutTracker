@@ -1,4 +1,6 @@
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
+import { MobileDateTimePicker } from '@mui/x-date-pickers';
+import dayjs, { Dayjs } from 'dayjs';
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
 import { Form } from '@components';
@@ -18,12 +20,14 @@ export const ChangingForm = ({ onSuccess }: ChangingFormProps) => {
   const [color, setColor] = useState<WasteColor>(WasteColor.NOT_APPLICABLE);
   const [consistency, setConsistency] = useState<WasteConsistency>(WasteConsistency.NOT_APPLICABLE);
   const [notes, setNotes] = useState<string | null>(null);
+  const [timestamp, setTimestamp] = useState<Dayjs>(dayjs());
   const [type, setType] = useState<WasteType>(WasteType.WET);
 
   const clearState = () => {
     setColor(WasteColor.NOT_APPLICABLE);
     setConsistency(WasteConsistency.NOT_APPLICABLE);
     setNotes(null);
+    setTimestamp(dayjs());
     setType(WasteType.WET);
   };
 
@@ -33,7 +37,7 @@ export const ChangingForm = ({ onSuccess }: ChangingFormProps) => {
   };
 
   const onSubmit = async () => {
-    await createNewChanging({ color, consistency, notes, type, timestamp: new Date().toISOString() });
+    await createNewChanging({ color, consistency, notes, type, timestamp: timestamp.toISOString() });
     clearState();
     setIsFormExpanded(false);
     onSuccess();
@@ -64,6 +68,11 @@ export const ChangingForm = ({ onSuccess }: ChangingFormProps) => {
           }
         </Select>
       </FormControl>
+      <MobileDateTimePicker
+        label='Date & Time'
+        value={timestamp}
+        onChange={(newValue) => setTimestamp(newValue ?? dayjs())}
+      />
       <FormControl fullWidth>
         <InputLabel id='waste-color-select-label'>Color</InputLabel>
         <Select

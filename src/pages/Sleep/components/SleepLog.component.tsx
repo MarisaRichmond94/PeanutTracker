@@ -75,8 +75,8 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatDate(startTime)} />
         <LogRow field='Duration' value={formatMinutesToHoursAndMinutes(duration)} />
-        <LogRow field='Location' value={location} />
-        <LogRow field='Type' value={type} />
+        <LogRow field='Location' value={toCapitalCase(location)} />
+        <LogRow field='Type' value={toCapitalCase(type)} />
         {!isNil(notes) && <LogRow field='Notes' value={notes} />}
       </x.div>
     </CardContent>

@@ -1,6 +1,6 @@
 import { Layout } from '@components';
 import { useGlobal } from '@contexts';
-import { ChangingPage, FeedingPage, GrowthPage, HomePage, LandingPage, NotesPage, ProfilePage, ProgressPage, SleepPage } from '@pages';
+import { ChangingPage, FeedingPage, GrowthPage, HomePage, LandingPage, NotesPage, ProfilePage, SleepPage, TrendsPage } from '@pages';
 import { Page } from '@types';
 
 export const App = () => {
@@ -15,8 +15,8 @@ export const App = () => {
       case Page.LANDING: return <LandingPage />;
       case Page.NOTES: return <NotesPage />;
       case Page.PROFILE: return <ProfilePage />;
-      case Page.PROGRESS: return <ProgressPage />;
       case Page.SLEEP: return <SleepPage />;
+      case Page.TRENDS: return <TrendsPage />;
     }
   };
 

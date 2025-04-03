@@ -19,7 +19,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
     switch (page) {
       case Page.NOTES:
       case Page.PROFILE:
-      case Page.PROGRESS:
+      case Page.TRENDS:
         return true;
       default:
         return false;

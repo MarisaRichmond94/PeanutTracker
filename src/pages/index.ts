@@ -5,5 +5,5 @@ export * from './Home';
 export * from './Landing';
 export * from './Notes';
 export * from './Profile';
-export * from './Progress';
 export * from './Sleep';
+export * from './Trends';

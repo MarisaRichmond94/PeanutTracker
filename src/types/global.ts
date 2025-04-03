@@ -6,6 +6,6 @@ export enum Page {
   LANDING = 'landing',
   NOTES = 'notes',
   PROFILE = 'profile',
-  PROGRESS = 'progress',
   SLEEP = 'sleep',
+  TRENDS = 'trends',
 }
