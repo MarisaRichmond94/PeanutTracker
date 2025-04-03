@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, Timestamp, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where } from 'firebase/firestore';
 
 import { db } from '@firebase';
 import { Growth } from '@models';
@@ -6,10 +6,7 @@ import { Growth } from '@models';
 const growthCollection = collection(db, 'growths');
 
 export const createNewGrowth = async (growth: Omit<Growth, 'id'>) => {
-  await addDoc(growthCollection, {
-    ...growth,
-    timestamp: Timestamp.now().toDate().toISOString(),
-  });
+  await addDoc(growthCollection, { ...growth });
 };
 
 export const getGrowths = async (): Promise<Growth[]> => {

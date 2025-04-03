@@ -1,5 +1,6 @@
 import { CardContent, Divider, FormControl, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
+import { isNil } from 'lodash';
 import { ChangeEvent, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
@@ -21,7 +22,7 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
   const [isInEditMode, setIsInEditMode] = useState(false);
   const [updatedColor, setUpdatedColor] = useState<WasteColor>(color);
   const [updatedConsistency, setUpdatedConsistency] = useState<WasteConsistency>(consistency);
-  const [updatedNotes, setUpdatedNotes] = useState<string | undefined>(notes);
+  const [updatedNotes, setUpdatedNotes] = useState<string | null>(notes);
   const [updatedType, setUpdatedType] = useState<WasteType>(type);
 
   const onDelete = async () => {
@@ -61,7 +62,7 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
         <LogRow field='Type' value={type} />
         <LogRow field='Color' value={color} />
         <LogRow field='Consistency' value={consistency} />
-        <LogRow field='Notes' value={notes} />
+        {!isNil(notes) && <LogRow field='Notes' value={notes} />}
       </x.div>
     </CardContent>
   );

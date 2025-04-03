@@ -17,13 +17,13 @@ export const ChangingForm = ({ onSuccess }: ChangingFormProps) => {
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   const [color, setColor] = useState<WasteColor>(WasteColor.NOT_APPLICABLE);
   const [consistency, setConsistency] = useState<WasteConsistency>(WasteConsistency.NOT_APPLICABLE);
-  const [notes, setNotes] = useState<string | undefined>();
+  const [notes, setNotes] = useState<string | null>(null);
   const [type, setType] = useState<WasteType>(WasteType.WET);
 
   const clearState = () => {
     setColor(WasteColor.NOT_APPLICABLE);
     setConsistency(WasteConsistency.NOT_APPLICABLE);
-    setNotes(undefined);
+    setNotes(null);
     setType(WasteType.WET);
   };
 

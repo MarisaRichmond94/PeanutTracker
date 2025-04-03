@@ -24,7 +24,7 @@ export type Changing = {
   id: string;
   color: WasteColor;
   consistency: WasteConsistency;
-  notes?: string;
+  notes: string | null;
   type: WasteType;
   timestamp: string;
 }

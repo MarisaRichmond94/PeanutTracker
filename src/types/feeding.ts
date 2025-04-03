@@ -9,7 +9,7 @@ export enum FeedingMethod {
 export type BaseFeeding = {
   id: string;
   method: FeedingMethod;
-  notes?: string;
+  notes: string | null;
   timestamp: string;
 };
 

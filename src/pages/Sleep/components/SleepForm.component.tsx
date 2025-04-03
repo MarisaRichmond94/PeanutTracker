@@ -1,4 +1,6 @@
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
+import { MobileDateTimePicker } from '@mui/x-date-pickers';
+import dayjs, { Dayjs } from 'dayjs';
 import { isNil } from 'lodash';
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
@@ -15,11 +17,12 @@ type SleepFormProps = {
 export const SleepForm = ({ onSuccess }: SleepFormProps) => {
   const { firstName } = useProfile();
 
-  const [duration, setDuration] = useState<number | undefined>();
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
+  const [endTime, setEndTime] = useState<Dayjs>(dayjs());
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   const [location, setLocation] = useState<SleepLocation>(SleepLocation.CRIB);
-  const [notes, setNotes] = useState<string | undefined>();
+  const [notes, setNotes] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<Dayjs>(dayjs());
   const [type, setType] = useState<SleepType>(SleepType.NAP);
 
   const clearErrors = () => {
@@ -27,9 +30,10 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
   };
 
   const clearState = () => {
-    setDuration(undefined);
+    setEndTime(dayjs());
     setLocation(SleepLocation.CRIB);
-    setNotes(undefined);
+    setNotes(null);
+    setStartTime(dayjs());
     setType(SleepType.NAP);
   };
 
@@ -41,17 +45,21 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
 
   const onSubmit = async () => {
     clearErrors();
-    if (isNil(duration) || duration <= 0) {
-      setDurationErrorText('Missing required duration');
+    if (startTime.isAfter(endTime)) {
+      setDurationErrorText('Start time cannot come after end time');
+      return;
+    }
+    if (startTime.isSame(endTime)) {
+      setDurationErrorText('End time cannot match start time');
       return;
     }
 
     await createNewSleep({
-      duration,
-      endTime: new Date().toISOString(),
+      duration: endTime.diff(startTime, 'minute'),
+      endTime: endTime.toISOString(),
       location,
       notes,
-      startTime: new Date(new Date().getTime() - duration * 60 * 1000).toISOString(),
+      startTime: startTime.toISOString(),
       type,
     });
 
@@ -62,11 +70,6 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
 
   const onToggleFormState = (_: SyntheticEvent, isExpanded: boolean) => {
     setIsFormExpanded(isExpanded);
-  };
-
-  const updateDuration = (event: ChangeEvent<HTMLInputElement>) => {
-    setDurationErrorText(undefined);
-    setDuration(Number(event.target.value));
   };
 
   const fields = (
@@ -108,20 +111,27 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
           }
         </Select>
       </FormControl>
-      <TextField
-        error={!isNil(durationErrorText)}
-        helperText={durationErrorText}
-        id='sleep-duration-field'
-        label='Duration In Minutes'
-        onChange={updateDuration}
-        placeholder={`How long did ${firstName} sleep?`}
+      <MobileDateTimePicker
+        label='Start Time'
+        value={startTime}
+        onChange={(newValue) => setStartTime(newValue ?? dayjs())}
         slotProps={{
-          inputLabel: {
-            shrink: true,
+          textField: {
+            error: startTime.isAfter(endTime),
+            helperText: startTime.isAfter(endTime) ? durationErrorText : undefined
           },
         }}
-        type='number'
-        value={duration}
+      />
+      <MobileDateTimePicker
+        label='End Time'
+        value={endTime}
+        onChange={(newValue) => setEndTime(newValue ?? dayjs())}
+        slotProps={{
+          textField: {
+            error: !isNil(durationErrorText) && startTime.isSame(endTime),
+            helperText: startTime.isSame(endTime) ? durationErrorText : undefined
+          },
+        }}
       />
       <TextField
         id='sleep-notes-field'

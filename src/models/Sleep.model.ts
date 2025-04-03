@@ -16,7 +16,7 @@ export type Sleep = {
   duration: number; // in minutes
   endTime: string;
   location: SleepLocation;
-  notes?: string;
+  notes: string | null;
   startTime: string;
   type: SleepType;
 }

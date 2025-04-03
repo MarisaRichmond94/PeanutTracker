@@ -1,5 +1,7 @@
 import { CardContent, FormControl, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
+import { MobileDateTimePicker } from '@mui/x-date-pickers';
 import { x } from '@xstyled/styled-components';
+import dayjs, { Dayjs } from 'dayjs';
 import { isNil } from 'lodash';
 import { ChangeEvent, useState } from 'react';
 
@@ -20,10 +22,11 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
   const { id, endTime, duration, location, notes, startTime, type } = sleep;
 
   const [isInEditMode, setIsInEditMode] = useState(false);
-  const [updatedDuration, setUpdatedDuration] = useState<number | undefined>(duration);
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
+  const [updatedEndTime, setUpdatedEndTime] = useState<Dayjs>(dayjs(endTime));
   const [updatedLocation, setUpdatedLocation] = useState<SleepLocation>(location);
-  const [updatedNotes, setUpdatedNotes] = useState<string | undefined>(notes);
+  const [updatedNotes, setUpdatedNotes] = useState<string | null>(notes);
+  const [updatedStartTime, setUpdatedStartTime] = useState<Dayjs>(dayjs(startTime));
   const [updatedType, setUpdatedType] = useState<SleepType>(type);
 
   const clearErrors = () => {
@@ -36,44 +39,45 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
   };
 
   const onDiscard = () => {
-    setUpdatedDuration(duration);
+    setUpdatedEndTime(dayjs(endTime));
     setUpdatedLocation(location);
     setUpdatedNotes(notes);
+    setUpdatedStartTime(dayjs(startTime));
     setUpdatedType(type);
     setIsInEditMode(false);
   };
 
   const onUpdate = async () => {
     clearErrors();
-    if (isNil(updatedDuration) || updatedDuration <= 0) {
-      setDurationErrorText('Missing required duration');
+    if (updatedStartTime.isAfter(updatedEndTime)) {
+      setDurationErrorText('Start time cannot come after end time');
+      return;
+    }
+    if (updatedStartTime.isSame(updatedEndTime)) {
+      setDurationErrorText('End time cannot match start time');
       return;
     }
 
     await updateSleep(id, {
-      duration: updatedDuration,
+      duration: updatedEndTime.diff(updatedStartTime, 'minute'),
+      endTime: updatedEndTime.toISOString(),
       location: updatedLocation,
       notes: updatedNotes,
-      startTime: new Date(new Date(endTime).getTime() - updatedDuration * 60 * 1000).toISOString(),
+      startTime: updatedStartTime.toISOString(),
       type: updatedType,
     });
     await onSuccess();
     setIsInEditMode(false);
   };
 
-  const updateDuration = (event: ChangeEvent<HTMLInputElement>) => {
-    setDurationErrorText(undefined);
-    setUpdatedDuration(Number(event.target.value));
-  };
-
   const getCardContent = () => (
     <CardContent>
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatDate(startTime)} />
-        <LogRow field='Duration' value={duration} />
+        <LogRow field='Duration' value={`${duration} minutes`} />
         <LogRow field='Location' value={location} />
         <LogRow field='Type' value={type} />
-        <LogRow field='Notes' value={notes} />
+        {!isNil(notes) && <LogRow field='Notes' value={notes} />}
       </x.div>
     </CardContent>
   );
@@ -82,21 +86,30 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
     <CardContent>
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatDate(startTime)} />
-        <EditLogRow field='Duration' value={
-          <TextField
-            className='skinny-text-field'
-            error={!isNil(durationErrorText)}
-            helperText={durationErrorText}
-            id='sleep-duration-field'
-            onChange={updateDuration}
-            placeholder={`How long did ${firstName} sleep?`}
+        <EditLogRow field='Start' value={
+          <MobileDateTimePicker
+            value={updatedStartTime}
+            onChange={(newValue) => setUpdatedStartTime(newValue ?? dayjs())}
             slotProps={{
-              inputLabel: {
-                shrink: true,
+              textField: {
+                className: 'skinny-text-field',
+                error: updatedStartTime.isAfter(updatedEndTime),
+                helperText: updatedStartTime.isAfter(updatedEndTime) ? durationErrorText : undefined
               },
             }}
-            type='number'
-            value={updatedDuration}
+          />
+        } />
+        <EditLogRow field='End' value={
+          <MobileDateTimePicker
+            value={updatedEndTime}
+            onChange={(newValue) => setUpdatedEndTime(newValue ?? dayjs())}
+            slotProps={{
+              textField: {
+                className: 'skinny-text-field',
+                error: !isNil(durationErrorText) && updatedStartTime.isSame(updatedEndTime),
+                helperText: updatedStartTime.isSame(updatedEndTime) ? durationErrorText : undefined
+              },
+            }}
           />
         } />
         <EditLogRow field='Location' value={

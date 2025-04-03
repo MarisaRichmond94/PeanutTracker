@@ -38,7 +38,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   const [reactionErrorText, setReactionErrorText] = useState<string | undefined>();
   // shared state
   const [isInEditMode, setIsInEditMode] = useState(false);
-  const [updatedNotes, setUpdatedNotes] = useState<string | undefined>(notes);
+  const [updatedNotes, setUpdatedNotes] = useState<string | null>(notes);
 
   useEffect(() => {
     if (method === FeedingMethod.BREAST) {

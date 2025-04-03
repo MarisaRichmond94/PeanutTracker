@@ -1,9 +1,12 @@
 import { TextField } from '@mui/material';
+import { MobileDatePicker } from '@mui/x-date-pickers';
+import dayjs, { Dayjs } from 'dayjs';
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
 import { Form } from '@components';
 import { useProfile } from '@contexts';
 import { createNewGrowth } from '@services';
+import { isNil } from 'lodash';
 
 type GrowthFormProps = {
   onSuccess: () => void;
@@ -13,16 +16,18 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
   const { firstName } = useProfile();
 
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
-  const [headCircumference, setHeadCircumference] = useState<number | undefined>();
-  const [height, setHeight] = useState<number | undefined>();
-  const [notes, setNotes] = useState<string | undefined>();
-  const [weight, setWeight] = useState<number | undefined>();
+  const [headCircumference, setHeadCircumference] = useState<number | null>(null);
+  const [height, setHeight] = useState<number | null>(null);
+  const [notes, setNotes] = useState<string | null>(null);
+  const [timestamp, setTimestamp] = useState<Dayjs>(dayjs());
+  const [weight, setWeight] = useState<number | null>(null);
 
   const clearState = () => {
-    setHeadCircumference(undefined);
-    setHeight(undefined);
-    setNotes(undefined);
-    setWeight(undefined);
+    setHeadCircumference(null);
+    setHeight(null);
+    setNotes(null);
+    setTimestamp(dayjs());
+    setWeight(null);
   };
 
   const onDiscard = () => {
@@ -31,7 +36,11 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
   };
 
   const onSubmit = async () => {
-    await createNewGrowth({ headCircumference, height, notes, weight, timestamp: new Date().toISOString() });
+    if (isNil(headCircumference) && isNil(height) && isNil(weight)) {
+      console.error('No information provided');
+      return;
+    }
+    await createNewGrowth({ headCircumference, height, notes, weight, timestamp: timestamp.toISOString() });
     clearState();
     setIsFormExpanded(false);
     onSuccess();
@@ -81,6 +90,11 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
         }}
         type='number'
         value={weight}
+      />
+      <MobileDatePicker
+        label='Date'
+        value={timestamp}
+        onChange={(newValue) => setTimestamp(newValue ?? dayjs())}
       />
       <TextField
         id='growth-notes-field'

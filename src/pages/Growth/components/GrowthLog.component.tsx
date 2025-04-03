@@ -1,12 +1,13 @@
 import { CardContent, TextField } from '@mui/material';
 import { x } from '@xstyled/styled-components';
+import { isNil } from 'lodash';
 import { ChangeEvent, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
 import { useProfile } from '@contexts';
 import { Growth } from '@models';
 import { deleteGrowth, updateGrowth } from '@services';
-import { formatTimestamp } from '@utils';
+import { formatLbsToLbsOz, formatTimestamp } from '@utils';
 
 interface GrowthLogProps {
   growth: Growth;
@@ -19,10 +20,10 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
   const { id, headCircumference, height, notes, weight, timestamp } = growth;
 
   const [isInEditMode, setIsInEditMode] = useState(false);
-  const [updatedHeadCircumference, setUpdatedHeadCircumference] = useState<number | undefined>(headCircumference);
-  const [updatedHeight, setUpdatedHeight] = useState<number | undefined>(height);
-  const [updatedNotes, setUpdatedNotes] = useState<string | undefined>(notes);
-  const [updatedWeight, setUpdatedWeight] = useState<number | undefined>(weight);
+  const [updatedHeadCircumference, setUpdatedHeadCircumference] = useState<number | null>(headCircumference);
+  const [updatedHeight, setUpdatedHeight] = useState<number | null>(height);
+  const [updatedNotes, setUpdatedNotes] = useState<string | null>(notes);
+  const [updatedWeight, setUpdatedWeight] = useState<number | null>(weight);
 
   const onDelete = async () => {
     await deleteGrowth(id);
@@ -52,10 +53,10 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
     <CardContent>
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatTimestamp(timestamp)} />
-        <LogRow field='Head' value={`${headCircumference} centimeters`} />
-        <LogRow field='Height' value={`${height} inches`} />
-        <LogRow field='Weight' value={`${weight} pounds`} />
-        <LogRow field='Notes' value={notes} />
+        {!isNil(headCircumference) && <LogRow field='Head' value={`${headCircumference} centimeters`} />}
+        {!isNil(height) && <LogRow field='Height' value={`${height} inches`} />}
+        {!isNil(weight) && <LogRow field='Weight' value={formatLbsToLbsOz(weight)} />}
+        {!isNil(notes) && <LogRow field='Notes' value={notes} />}
       </x.div>
     </CardContent>
   );
