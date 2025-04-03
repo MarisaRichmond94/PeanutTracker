@@ -7,7 +7,7 @@ import { EditLogRow, Log, LogRow } from '@components';
 import { useProfile } from '@contexts';
 import { Growth } from '@models';
 import { deleteGrowth, updateGrowth } from '@services';
-import { formatLbsToLbsOz, formatTimestamp } from '@utils';
+import { formatDate, formatLbsToLbsOz } from '@utils';
 
 interface GrowthLogProps {
   growth: Growth;
@@ -52,7 +52,7 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
   const getCardContent = () => (
     <CardContent>
       <x.div display='flex' flexDirection='column' gap='15px'>
-        <LogRow field='Date' value={formatTimestamp(timestamp)} />
+        <LogRow field='Date' value={formatDate(timestamp)} />
         {!isNil(headCircumference) && <LogRow field='Head' value={`${headCircumference} centimeters`} />}
         {!isNil(height) && <LogRow field='Height' value={`${height} inches`} />}
         {!isNil(weight) && <LogRow field='Weight' value={formatLbsToLbsOz(weight)} />}
@@ -64,7 +64,7 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
   const getEditableCardContent = () => (
     <CardContent>
       <x.div display='flex' flexDirection='column' gap='15px'>
-        <LogRow field='Date' value={formatTimestamp(timestamp)} />
+        <LogRow field='Date' value={formatDate(timestamp)} />
         <EditLogRow field='Head' value={
           <TextField
             className='skinny-text-field'

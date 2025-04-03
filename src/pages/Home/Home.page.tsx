@@ -15,7 +15,7 @@ import { EmptyState, LoadingState } from '@components';
 import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep, SleepType, WasteType } from '@models';
 import { getTodayBottleFeedings, getTodayBreastFeedings, getTodayChangings, getTodayFeedings, getTodayGrowths, getTodaySleeps } from '@services';
 import { FeedingEntity, FeedingMethod, LogEntry, LogType } from '@types';
-import { formatShortDate, getTimeOnly, getTitle, toCapitalCase } from '@utils';
+import { formatMinutesToHoursAndMinutes, formatShortDate, getTimeOnly, getTitle, toCapitalCase } from '@utils';
 
 import { DailySnapshot, TimelineView } from './components';
 
@@ -176,7 +176,7 @@ export const HomePage = () => {
             {toCapitalCase(`${sleepAction} in ${location}`)}
           </x.h3>
           <x.p margin='0'>
-            <b>Duration:</b> {`${duration} minutes`}<br/>
+            <b>Duration:</b> {formatMinutesToHoursAndMinutes(duration)}<br/>
             {!isNil(notes) && <><b>Notes:</b> {notes}</>}
           </x.p>
           <x.p margin='0'>{getTimeOnly(startTime)}</x.p>

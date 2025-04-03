@@ -8,9 +8,9 @@ import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
 import { isNil } from 'lodash';
 import { VerticalTimeline, VerticalTimelineElement }  from 'react-vertical-timeline-component';
 
-import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep, SleepType, WasteType } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep, SleepLocation, SleepType, WasteType } from '@models';
 import { BaseLog, LogEntry, LogType } from '@types';
-import { toCapitalCase } from '@utils';
+import { formatMinutesToHoursAndMinutes, toCapitalCase } from '@utils';
 
 type TimelineViewProps = {
   logs: LogEntry[];
@@ -112,10 +112,10 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
         return (
           <>
             <h3 className='vertical-timeline-element-title'>
-              {toCapitalCase(`${sleepAction} in ${location}`)}
+              {location === SleepLocation.CONTACT_NAP ? 'Contact Napped' : toCapitalCase(`${sleepAction} in ${location}`)}
             </h3>
             <p>
-              <b>Duration:</b> {`${sleepDuration} minutes`}<br/>
+              <b>Duration:</b> {formatMinutesToHoursAndMinutes(sleepDuration)}<br/>
               {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>

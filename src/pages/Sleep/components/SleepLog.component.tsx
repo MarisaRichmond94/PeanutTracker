@@ -9,7 +9,7 @@ import { EditLogRow, Log, LogRow } from '@components';
 import { useProfile } from '@contexts';
 import { Sleep, SleepLocation, SleepType } from '@models';
 import { deleteSleep, updateSleep } from '@services';
-import { formatDate, toCapitalCase } from '@utils';
+import { formatDate, formatMinutesToHoursAndMinutes, toCapitalCase } from '@utils';
 
 interface SleepLogProps {
   sleep: Sleep;
@@ -74,7 +74,7 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
     <CardContent>
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatDate(startTime)} />
-        <LogRow field='Duration' value={`${duration} minutes`} />
+        <LogRow field='Duration' value={formatMinutesToHoursAndMinutes(duration)} />
         <LogRow field='Location' value={location} />
         <LogRow field='Type' value={type} />
         {!isNil(notes) && <LogRow field='Notes' value={notes} />}
