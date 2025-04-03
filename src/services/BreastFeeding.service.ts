@@ -33,14 +33,6 @@ export const getBreastFeedingsInRange = async (startTimestamp: string, endTimest
   })) as BreastFeeding[];
 };
 
-export const getTodayBreastFeedings = async (): Promise<BreastFeeding[]> => {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-
-  return getBreastFeedingsInRange(startOfDay.toISOString(), endOfDay.toISOString());
-};
-
 export const updateBreastFeeding = async (id: string, updatedData: Partial<BreastFeeding>) => {
   const feedingDoc = doc(db, 'breast_feedings', id);
   await updateDoc(feedingDoc, updatedData);

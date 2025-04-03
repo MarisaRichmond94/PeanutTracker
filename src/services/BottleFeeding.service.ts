@@ -36,14 +36,6 @@ export const getBottleFeedingsInRange = async (startTimestamp: string, endTimest
   })) as BottleFeeding[];
 };
 
-export const getTodayBottleFeedings = async (): Promise<BottleFeeding[]> => {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-
-  return getBottleFeedingsInRange(startOfDay.toISOString(), endOfDay.toISOString());
-};
-
 export const updateBottleFeeding = async (id: string, updatedData: Partial<BottleFeeding>) => {
   const feedingDoc = doc(db, 'bottle_feedings', id);
   await updateDoc(feedingDoc, updatedData);

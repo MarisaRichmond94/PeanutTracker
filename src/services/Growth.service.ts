@@ -33,14 +33,6 @@ export const getGrowthsInRange = async (startTimestamp: string, endTimestamp: st
   })) as Growth[];
 };
 
-export const getTodayGrowths = async (): Promise<Growth[]> => {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-
-  return getGrowthsInRange(startOfDay.toISOString(), endOfDay.toISOString());
-};
-
 export const updateGrowth = async (id: string, updatedData: Partial<Growth>) => {
   const growthDoc = doc(db, 'growths', id);
   await updateDoc(growthDoc, updatedData);

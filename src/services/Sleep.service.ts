@@ -36,14 +36,6 @@ export const getSleepsInRange = async (startTimestamp: string, endTimestamp: str
   })) as Sleep[];
 };
 
-export const getTodaySleeps = async (): Promise<Sleep[]> => {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-
-  return getSleepsInRange(startOfDay.toISOString(), endOfDay.toISOString());
-};
-
 export const updateSleep = async (id: string, updatedData: Partial<Sleep>) => {
   const sleepDoc = doc(db, 'sleeps', id);
   await updateDoc(sleepDoc, updatedData);

@@ -37,14 +37,6 @@ export const getChangingsInRange = async (startTimestamp: string, endTimestamp: 
   })) as Changing[];
 };
 
-export const getTodayChangings = async (): Promise<Changing[]> => {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-
-  return getChangingsInRange(startOfDay.toISOString(), endOfDay.toISOString());
-};
-
 export const updateChanging = async (id: string, updatedData: Partial<Changing>) => {
   const changingDoc = doc(db, 'changings', id);
   await updateDoc(changingDoc, updatedData);

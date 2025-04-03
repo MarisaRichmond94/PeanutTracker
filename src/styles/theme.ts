@@ -91,6 +91,16 @@ export const theme = createTheme({
             '&:hover fieldset': { borderColor: '#b5ead7' },
             '&.Mui-focused fieldset': { borderColor: 'white' },
           },
+          '& .MuiInputBase-input.Mui-disabled': {
+            color: 'white',
+            WebkitTextFillColor: 'white',
+          },
+          '& label.Mui-disabled': {
+            color: '#aaa',
+          },
+          '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#555',
+          },
         },
       },
     },
