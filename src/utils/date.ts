@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import dayjs from 'dayjs';
 
 export const addMinutes = (timestamp: string | Date, minutes: number): string => {
   const date = new Date(timestamp);
@@ -26,23 +27,30 @@ export const formatShortDate = (timestamp: string | Date): string => {
 };
 
 export const getAge = (birthday: string): string => {
-  const birthDate = new Date(birthday);
-  const today = new Date();
+  const birthDate = dayjs(birthday);
+  const today = dayjs();
 
-  const yearsDiff = today.getFullYear() - birthDate.getFullYear();
-  const monthsDiff = today.getMonth() - birthDate.getMonth();
-  const totalMonths = yearsDiff * 12 + monthsDiff;
+  const diffInDays = today.diff(birthDate, 'day');
+  const diffInWeeks = today.diff(birthDate, 'week');
+  const diffInMonths = today.diff(birthDate, 'month');
+  const diffInYears = today.diff(birthDate, 'year');
 
-  if (totalMonths < 24) {
-    return `${totalMonths} month${totalMonths !== 1 ? 's' : ''}`;
+  if (diffInDays < 7) {
+    return `${diffInDays} day${diffInDays !== 1 ? 's' : ''}`;
   }
 
-  const years = Math.floor(totalMonths / 12);
-  const months = totalMonths % 12;
+  if (diffInMonths < 1) {
+    const overflowDays = diffInDays - (diffInWeeks * 7);
+    return `${diffInWeeks} week${diffInWeeks !== 1 ? 's' : ''}${overflowDays > 0 ? ` and ${overflowDays} day${overflowDays !== 1 ? 's' : ''}` : ''}`;
+  }
 
-  return months === 0
-    ? `${years} year${years !== 1 ? 's' : ''}`
-    : `${years} year${years !== 1 ? 's' : ''} and ${months} month${months !== 1 ? 's' : ''}`;
+  if (diffInMonths < 12) {
+    const weeks = today.diff(birthDate.add(diffInMonths, 'month'), 'week');
+    return `${diffInMonths} month${diffInMonths !== 1 ? 's' : ''}${weeks > 0 ? ` and ${weeks} week${weeks !== 1 ? 's' : ''}` : ''}`;
+  }
+
+  const remainingMonths = diffInMonths % 12;
+  return `${diffInYears} year${diffInYears !== 1 ? 's' : ''}${remainingMonths > 0 ? ` and ${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}` : ''}`;
 };
 
 export const getMaxDayByMonth = (month: number): number => {
