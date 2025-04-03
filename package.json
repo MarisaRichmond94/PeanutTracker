@@ -10,14 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.2.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource/roboto": "^5.1.1",
     "@mui/icons-material": "^6.4.6",
+    "@mui/lab": "7.0.0-beta.10",
     "@mui/material": "^6.4.6",
     "@mui/styled-engine-sc": "^6.4.6",
+    "@mui/x-date-pickers": "^7.28.3",
     "@xstyled/styled-components": "^4.0.0",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
     "firebase": "^11.4.0",
     "immer": "^10.1.1",
     "lodash": "^4.17.21",

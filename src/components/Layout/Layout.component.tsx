@@ -30,7 +30,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
 
   if (getIsMenuLayout()) {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
         <x.div display='flex' flexDirection='column' gap='20px' padding='20px'>
           <SectionHeader onClick={() => setShowHeaderMenu(true)} text={page.charAt(0).toUpperCase() + page.slice(1)} />
         </x.div>
@@ -44,7 +44,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
       <Header showHeaderMenu={showHeaderMenu} setShowHeaderMenu={setShowHeaderMenu} />
       <Box sx={{ flexGrow: 1, minHeight: 0, overflowY: 'auto' }}>
         <x.div id='page-content' margin='12px'>

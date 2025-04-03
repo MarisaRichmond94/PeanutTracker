@@ -8,6 +8,8 @@ import { FeedingSide } from '@models';
 import { createNewBottleFeeding, createNewBreastFeeding, createNewFeeding } from '@services';
 import { FeedingMethod } from '@types';
 import { subtractMinutes, toCapitalCase } from '@utils';
+import { DateTimePicker, MobileDateTimePicker } from '@mui/x-date-pickers';
+import dayjs, { Dayjs } from 'dayjs';
 
 type FeedingFormProps = {
   onSuccess: () => void;
@@ -22,6 +24,8 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   // breastfeeding only
   const [duration, setDuration] = useState<number | undefined>();
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
+  const [endTime, setEndTime] = useState<Dayjs | undefined>(dayjs());
+  const [startTime, setStartTime] = useState<Dayjs | undefined>(dayjs());
   const [side, setSide] = useState<FeedingSide>(FeedingSide.BOTH);
   // feeding only
   const [food, setFood] = useState<string | undefined>();
@@ -103,7 +107,8 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
 
   const updateDuration = (event: ChangeEvent<HTMLInputElement>) => {
     setDurationErrorText(undefined);
-    setDuration(Number(event.target.value));
+    const nextValue = Number(event.target.value);
+    setDuration(nextValue > 0 ? nextValue : undefined);
   };
 
   const methodSelector = (
@@ -190,6 +195,16 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
                 }
               </Select>
             </FormControl>
+            {/* <MobileDateTimePicker
+              label='Start Time'
+              value={startTime}
+              onChange={(newValue) => setStartTime(newValue ?? undefined)}
+            />
+            <MobileDateTimePicker
+              label='End Time'
+              value={endTime}
+              onChange={(newValue) => setEndTime(newValue ?? undefined)}
+            /> */}
             <TextField
               error={!isNil(durationErrorText)}
               helperText={durationErrorText}

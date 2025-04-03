@@ -121,7 +121,8 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
 
   const updateDuration = (event: ChangeEvent<HTMLInputElement>) => {
     setDurationErrorText(undefined);
-    setUpdatedDuration(Number(event.target.value));
+    const nextValue = Number(event.target.value);
+    setUpdatedDuration(nextValue > 0 ? nextValue : undefined);
   };
 
   const getContentFields = () => {
