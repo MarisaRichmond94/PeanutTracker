@@ -100,7 +100,7 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
             </Select>
           </FormControl>
         } />
-        <EditLogRow field='Type' value={
+        <EditLogRow field='Date' value={
           <MobileDateTimePicker
             value={updatedTimestamp}
             onChange={(newValue) => setUpdatedTimestamp(newValue ?? dayjs())}
