@@ -25,8 +25,8 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
   const [updatedNotes, setUpdatedNotes] = useState<string | null>(notes);
   const [updatedWeight, setUpdatedWeight] = useState<number | null>(weight);
 
-  const onDelete = async () => {
-    await deleteGrowth(id);
+  const onDelete = async (idToUpdate: string) => {
+    await deleteGrowth(idToUpdate);
     await onSuccess();
   };
 
@@ -38,8 +38,8 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
     setIsInEditMode(false);
   };
 
-  const onUpdate = async () => {
-    await updateGrowth(id, {
+  const onUpdate = async (idToUpdate: string) => {
+    await updateGrowth(idToUpdate, {
       headCircumference: updatedHeadCircumference,
       height: updatedHeight,
       notes: updatedNotes,
@@ -131,6 +131,7 @@ export const GrowthLog = ({ growth, onSuccess }: GrowthLogProps) => {
 
   return (
     <Log
+      id={id}
       isInEditMode={isInEditMode}
       getCardContent={getCardContent}
       getEditableCardContent={getEditableCardContent}

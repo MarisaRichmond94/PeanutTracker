@@ -33,8 +33,8 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
     setDurationErrorText(undefined);
   };
 
-  const onDelete = async () => {
-    await deleteSleep(id);
+  const onDelete = async (idToUpdate: string) => {
+    await deleteSleep(idToUpdate);
     await onSuccess();
   };
 
@@ -47,7 +47,7 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
     setIsInEditMode(false);
   };
 
-  const onUpdate = async () => {
+  const onUpdate = async (idToUpdate: string) => {
     clearErrors();
     if (updatedStartTime.isAfter(updatedEndTime)) {
       setDurationErrorText('Start time cannot come after end time');
@@ -58,7 +58,7 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
       return;
     }
 
-    await updateSleep(id, {
+    await updateSleep(idToUpdate, {
       duration: updatedEndTime.diff(updatedStartTime, 'minute'),
       endTime: updatedEndTime.toISOString(),
       location: updatedLocation,
@@ -171,6 +171,7 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
 
   return (
     <Log
+      id={id}
       isInEditMode={isInEditMode}
       getCardContent={getCardContent}
       getEditableCardContent={getEditableCardContent}

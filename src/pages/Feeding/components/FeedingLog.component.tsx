@@ -78,16 +78,16 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
     setReactionErrorText(undefined);
   };
 
-  const onDelete = async () => {
+  const onDelete = async (idToUpdate: string) => {
     switch (method) {
       case FeedingMethod.BOTTLE:
-        await deleteBottleFeeding(id);
+        await deleteBottleFeeding(idToUpdate);
         break;
       case FeedingMethod.BREAST:
-        await deleteBreastFeeding(id);
+        await deleteBreastFeeding(idToUpdate);
         break;
       case FeedingMethod.FOOD:
-        await deleteFeeding(id);
+        await deleteFeeding(idToUpdate);
         break;
     }
     await onSuccess();
@@ -99,7 +99,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
     resetUniqueState();
   };
 
-  const onUpdate = async () => {
+  const onUpdate = async (idToUpdate: string) => {
     clearErrors();
 
     switch (method) {
@@ -108,7 +108,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
           setAmountErrorText('Missing required amount');
           return;
         }
-        await updateBottleFeeding(id, { amount: updatedAmount, notes: updatedNotes });
+        await updateBottleFeeding(idToUpdate, { amount: updatedAmount, notes: updatedNotes });
         break;
       case FeedingMethod.BREAST:
         if (updatedStartTime.isAfter(updatedEndTime)) {
@@ -119,10 +119,10 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
           setDurationErrorText('End time cannot match start time');
           return;
         }
-        await updateBreastFeeding(id, { duration: updatedEndTime.diff(updatedStartTime, 'minute'), side: updatedSide, notes: updatedNotes, timestamp: updatedStartTime.toISOString() });
+        await updateBreastFeeding(idToUpdate, { duration: updatedEndTime.diff(updatedStartTime, 'minute'), side: updatedSide, notes: updatedNotes, timestamp: updatedStartTime.toISOString() });
         break;
       case FeedingMethod.FOOD:
-        await updateFeeding(id, { })
+        await updateFeeding(idToUpdate, { food: updatedFood, reaction: updatedReaction })
         break;
     }
 
@@ -327,6 +327,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
 
   return (
     <Log
+      id={id}
       isInEditMode={isInEditMode}
       getCardContent={getCardContent}
       getEditableCardContent={getEditableCardContent}

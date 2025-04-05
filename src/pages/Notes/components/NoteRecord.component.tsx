@@ -22,8 +22,8 @@ export const NoteRecord = ({ note, onSuccess }: NoteRecordProps) => {
   const [updatedPriority, setUpdatedPriority] = useState<NotePriority>(priority);
   const [updatedValue, setUpdatedValue] = useState<string | undefined>(value);
 
-  const onDelete = async () => {
-    await deleteNote(id);
+  const onDelete = async (idToUpdate: string) => {
+    await deleteNote(idToUpdate);
     await onSuccess();
   };
 
@@ -33,8 +33,8 @@ export const NoteRecord = ({ note, onSuccess }: NoteRecordProps) => {
     setIsInEditMode(false);
   };
 
-  const onUpdate = async () => {
-    await updateNote(id, {
+  const onUpdate = async (idToUpdate: string) => {
+    await updateNote(idToUpdate, {
       priority: updatedPriority,
       value: updatedValue,
     });
@@ -109,6 +109,7 @@ export const NoteRecord = ({ note, onSuccess }: NoteRecordProps) => {
 
   return (
     <Log
+      id={id}
       isInEditMode={isInEditMode}
       getCardContent={getCardContent}
       getEditableCardContent={getEditableCardContent}

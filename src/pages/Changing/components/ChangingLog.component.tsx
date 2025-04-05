@@ -28,8 +28,8 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
   const [updatedTimestamp, setUpdatedTimestamp] = useState<Dayjs>(dayjs(timestamp));
   const [updatedType, setUpdatedType] = useState<WasteType>(type);
 
-  const onDelete = async () => {
-    await deleteChanging(id);
+  const onDelete = async (idToUpdate: string) => {
+    await deleteChanging(idToUpdate);
     await onSuccess();
   };
 
@@ -42,8 +42,8 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
     setIsInEditMode(false);
   };
 
-  const onUpdate = async () => {
-    await updateChanging(id, {
+  const onUpdate = async (idToUpdate: string) => {
+    await updateChanging(idToUpdate, {
       color: updatedColor,
       consistency: updatedConsistency,
       notes: updatedNotes,
@@ -166,6 +166,7 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
 
   return (
     <Log
+      id={id}
       isInEditMode={isInEditMode}
       getCardContent={getCardContent}
       getEditableCardContent={getEditableCardContent}

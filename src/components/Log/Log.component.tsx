@@ -2,17 +2,19 @@ import { Box, Button, Card, CardActions } from '@mui/material';
 import { ReactNode } from 'react';
 
 type LogProps = {
+  id: string;
   isInEditMode: boolean;
 
   getCardContent: () => ReactNode;
   getEditableCardContent: () => ReactNode;
-  onDelete: () => void;
+  onDelete: (idToUpdate: string) => void;
   onDiscard: () => void;
-  onUpdate: () => void;
+  onUpdate: (idToUpdate: string) => void;
   setIsInEditMode: (isInEditMode: boolean) => void;
 }
 
 export const Log = ({
+  id,
   isInEditMode,
   getCardContent,
   getEditableCardContent,
@@ -32,10 +34,10 @@ export const Log = ({
     <Card>
       {isInEditMode ? getEditableCardContent() : getCardContent()}
       <CardActions sx={{ justifyContent: 'right' }}>
-        <Button color='primary' onClick={isInEditMode ? onUpdate : () => setIsInEditMode(true)} variant='contained'>
+        <Button color='primary' onClick={isInEditMode ? () => onUpdate(id) : () => setIsInEditMode(true)} variant='contained'>
           {isInEditMode ? 'Update' : 'Edit'}
         </Button>
-        <Button color='error' onClick={isInEditMode ? onDiscard : onDelete} variant='outlined'>
+        <Button color='error' onClick={isInEditMode ? onDiscard : () => onDelete(id)} variant='outlined'>
           {isInEditMode ? 'Discard' : 'Delete'}
         </Button>
       </CardActions>
