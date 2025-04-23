@@ -10,8 +10,8 @@ import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
 import { EmptyState, LoadingState } from '@components';
-import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep } from '@models';
-import { getBottleFeedingsInRange, getBreastFeedingsInRange, getChangingsInRange, getFeedingsInRange, getGrowthsInRange, getSleepsInRange } from '@services';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Pumping, Sleep } from '@models';
+import { getBottleFeedingsInRange, getBreastFeedingsInRange, getChangingsInRange, getFeedingsInRange, getGrowthsInRange, getPumpingsInRange, getSleepsInRange } from '@services';
 import { LogEntry, LogType } from '@types';
 import { getTimeOnly } from '@utils';
 
@@ -25,21 +25,26 @@ export const HomePage = () => {
   const [feedings, setFeedings] = useState<Feeding[] | undefined>();
   const [growths, setGrowths] = useState<Growth[] | undefined>();
   const [isDailySnapshot, setIsDailySnapshot] = useState<boolean>(true);
+  const [pumpings, setPumpings] = useState<Pumping[] | undefined>();
   const [sleeps, setSleeps] = useState<Sleep[] | undefined>();
   const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf('day'));
 
   const loadSnapshot = async () => {
-    const bottleFeedings = await getBottleFeedingsInRange(startDate.toISOString(), endDate.toISOString());
-    const breastFeedings = await getBreastFeedingsInRange(startDate.toISOString(), endDate.toISOString());
-    const changings =  await getChangingsInRange(startDate.toISOString(), endDate.toISOString());
-    const feedings =  await getFeedingsInRange(startDate.toISOString(), endDate.toISOString());
-    const growths =  await getGrowthsInRange(startDate.toISOString(), endDate.toISOString());
-    const sleeps = await  await getSleepsInRange(startDate.toISOString(), endDate.toISOString());
+    const start = startDate.toISOString();
+    const end = endDate.toISOString();
+    const bottleFeedings = await getBottleFeedingsInRange(start, end);
+    const breastFeedings = await getBreastFeedingsInRange(start, end);
+    const changings =  await getChangingsInRange(start, end);
+    const feedings =  await getFeedingsInRange(start, end);
+    const growths =  await getGrowthsInRange(start, end);
+    const pumpings = await getPumpingsInRange(start, end);
+    const sleeps = await  await getSleepsInRange(start, end);
     setBottleFeedings(bottleFeedings);
     setBreastFeedings(breastFeedings);
     setChangings(changings);
     setFeedings(feedings);
     setGrowths(growths);
+    setPumpings(pumpings);
     setSleeps(sleeps);
   };
 
@@ -53,6 +58,7 @@ export const HomePage = () => {
       ...(changings?.map((c) => ({ ...c, time: getTimeOnly(c.timestamp), logType: LogType.CHANGING })) || []),
       ...(feedings?.map((f) => ({ ...f, time: getTimeOnly(f.timestamp), logType: LogType.FEEDING })) || []),
       ...(growths?.map((g) => ({ ...g, time: getTimeOnly(g.timestamp), logType: LogType.GROWTH })) || []),
+      ...(pumpings?.map((p) => ({ ...p, time: getTimeOnly(p.timestamp), logType: LogType.PUMPING })) || []),
       ...(sleeps?.map((s) => ({ ...s, timestamp: s.startTime, time: getTimeOnly(s.startTime), logType: LogType.SLEEP })) || []),
     ];
     allLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());

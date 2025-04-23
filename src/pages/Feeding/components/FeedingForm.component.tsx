@@ -8,7 +8,7 @@ import { ChangeEvent, SyntheticEvent, useState } from 'react';
 import { Form } from '@components';
 import { useProfile } from '@contexts';
 import { FeedingSide } from '@models';
-import { createNewBottleFeeding, createNewBreastFeeding, createNewFeeding } from '@services';
+import { createNewBottleFeeding, createNewBreastFeeding, createNewFeeding, createNewPumping } from '@services';
 import { FeedingMethod } from '@types';
 import { toCapitalCase } from '@utils';
 
@@ -25,17 +25,21 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   // breastfeeding only
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
   const [endTime, setEndTime] = useState<Dayjs>(dayjs());
-  const [startTime, setStartTime] = useState<Dayjs>(dayjs());
   const [side, setSide] = useState<FeedingSide>(FeedingSide.BOTH);
   // feeding only
   const [food, setFood] = useState<string | undefined>();
   const [foodErrorText, setFoodErrorText] = useState<string | undefined>();
   const [reaction, setReaction] = useState<string | undefined>();
   const [reactionErrorText, setReactionErrorText] = useState<string | undefined>();
+  // pumping only
+  const [duration, setDuration] = useState<number>(0);
+  const [leftAmount, setLeftAmount] = useState<number>(0);
+  const [rightAmount, setRightAmount] = useState<number>(0);
   // shared state
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   const [method, setMethod] = useState<FeedingMethod>(FeedingMethod.BREAST);
   const [notes, setNotes] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<Dayjs>(dayjs());
 
   const clearErrors = () => {
     setAmountErrorText(undefined);
@@ -46,11 +50,14 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
 
   const clearState = () => {
     setAmount(undefined);
+    setDuration(0);
     setEndTime(dayjs());
     setFood(undefined);
+    setLeftAmount(0);
     setMethod(FeedingMethod.BREAST);
     setNotes(null);
     setReaction(undefined);
+    setRightAmount(0);
     setSide(FeedingSide.BOTH);
     setStartTime(dayjs());
   };
@@ -70,7 +77,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
           setAmountErrorText('Missing required amount');
           return;
         }
-        await createNewBottleFeeding({ amount, method, notes, timestamp: new Date().toISOString() });
+        await createNewBottleFeeding({ amount, method, notes, timestamp: startTime.toISOString() });
         break;
       case FeedingMethod.BREAST:
         if (startTime.isAfter(endTime)) {
@@ -92,7 +99,10 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
           setReactionErrorText('Missing required reaction');
           return;
         }
-        await createNewFeeding({ food, method, notes, reaction, timestamp: new Date().toISOString() });
+        await createNewFeeding({ food, method, notes, reaction, timestamp: startTime.toISOString() });
+        break;
+      case FeedingMethod.PUMP:
+        await createNewPumping({ duration, leftAmount, method, notes, rightAmount, timestamp: startTime.toISOString() });
         break;
     }
 
@@ -132,6 +142,20 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
     </FormControl>
   );
 
+  const startTimePicker = (
+    <MobileDateTimePicker
+      label={FeedingMethod.BREAST ? 'Start Time' : 'Date'}
+      value={startTime}
+      onChange={(newValue) => setStartTime(newValue ?? dayjs())}
+      slotProps={{
+        textField: {
+          error: startTime.isAfter(endTime),
+          helperText: startTime.isAfter(endTime) ? durationErrorText : undefined
+        },
+      }}
+    />
+  );
+
   const noteField = (
     <TextField
       id='feeding-notes-field'
@@ -154,6 +178,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
         return (
           <>
             {methodSelector}
+            {startTimePicker}
             <TextField
               error={!isNil(amountErrorText)}
               helperText={amountErrorText}
@@ -194,17 +219,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
                 }
               </Select>
             </FormControl>
-            <MobileDateTimePicker
-              label='Start Time'
-              value={startTime}
-              onChange={(newValue) => setStartTime(newValue ?? dayjs())}
-              slotProps={{
-                textField: {
-                  error: startTime.isAfter(endTime),
-                  helperText: startTime.isAfter(endTime) ? durationErrorText : undefined
-                },
-              }}
-            />
+            {startTimePicker}
             <MobileDateTimePicker
               label='End Time'
               value={endTime}
@@ -218,11 +233,12 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
             />
             {noteField}
           </>
-        )
+        );
       case FeedingMethod.FOOD:
         return (
           <>
             {methodSelector}
+            {startTimePicker}
             <TextField
               error={!isNil(foodErrorText)}
               helperText={foodErrorText}
@@ -255,7 +271,54 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
             />
             {noteField}
           </>
-        )
+        );
+      case FeedingMethod.PUMP:
+        return (
+          <>
+            {methodSelector}
+            {startTimePicker}
+            <TextField
+              id='feeding-duration-field'
+              label='Duration (In Minutes)'
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setDuration(Number(event.target.value))}
+              placeholder='How long did you pump?'
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+              }}
+              type='number'
+              value={duration}
+            />
+            <TextField
+              id='feeding-left-amount-field'
+              label='Amount (Left) In Ounces'
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setLeftAmount(Number(event.target.value))}
+              placeholder='How much milk did the left breast yield?'
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+              }}
+              type='number'
+              value={leftAmount}
+            />
+            <TextField
+              id='feeding-right-amount-field'
+              label='Amount (Right) In Ounces'
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setRightAmount(Number(event.target.value))}
+              placeholder='How much milk did the right breast yield?'
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+              }}
+              type='number'
+              value={rightAmount}
+            />
+            {noteField}
+          </>
+        );
     }
   };
 

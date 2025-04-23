@@ -5,24 +5,27 @@ import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
 import { EmptyState, LoadingState } from '@components';
-import { getBottleFeedings, getBreastFeedings, getFeedings } from '@services';
+import { getBottleFeedings, getBreastFeedings, getFeedings, getPumpings } from '@services';
 import { FeedingEntity } from '@types';
 
 import { FeedingForm, FeedingLog } from './components';
-import { BottleFeeding, BreastFeeding, Feeding } from '@models';
+import { BottleFeeding, BreastFeeding, Feeding, Pumping } from '@models';
 
 export const FeedingPage = () => {
   const [bottleFeedings, setBottleFeedings] = useState<BottleFeeding[] | undefined>();
   const [breastFeedings, setBreastFeedings] = useState<BreastFeeding[] | undefined>();
   const [feedings, setFeedings] = useState<Feeding[] | undefined>();
+  const [pumpings, setPumpings] = useState<Pumping[] | undefined>();
 
   const loadAllFeedings = async () => {
     const allBottleFeedings = await getBottleFeedings();
     const allBreastFeedings = await getBreastFeedings();
     const allFeedings = await getFeedings();
+    const allPumpings = await getPumpings();
     setBottleFeedings(allBottleFeedings);
     setBreastFeedings(allBreastFeedings);
     setFeedings(allFeedings);
+    setPumpings(allPumpings);
   };
 
   const getCombinedFeedings = (): FeedingEntity[] => {
@@ -30,6 +33,7 @@ export const FeedingPage = () => {
       ...(bottleFeedings || []),
       ...(breastFeedings || []),
       ...(feedings || []),
+      ...(pumpings || []),
     ] as FeedingEntity[];
     allFeedings.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 

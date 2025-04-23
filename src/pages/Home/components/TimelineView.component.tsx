@@ -5,10 +5,11 @@ import AirlineSeatFlatRoundedIcon from '@mui/icons-material/AirlineSeatFlatRound
 import BabyChangingStationRoundedIcon from '@mui/icons-material/BabyChangingStationRounded';
 import GrassRoundedIcon from '@mui/icons-material/GrassRounded';
 import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
+import SanitizerRoundedIcon from '@mui/icons-material/SanitizerRounded';
 import { isNil } from 'lodash';
 import { VerticalTimeline, VerticalTimelineElement }  from 'react-vertical-timeline-component';
 
-import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep, SleepLocation, SleepType, WasteColor, WasteConsistency, WasteType } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Pumping, Sleep, SleepLocation, SleepType, WasteColor, WasteConsistency, WasteType } from '@models';
 import { BaseLog, LogEntry, LogType } from '@types';
 import { formatMinutesToHoursAndMinutes, toCapitalCase } from '@utils';
 
@@ -27,6 +28,8 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
         return <BabyChangingStationRoundedIcon />;
       case LogType.GROWTH:
         return <GrassRoundedIcon />;
+      case LogType.PUMPING:
+        return <SanitizerRoundedIcon />;
       case LogType.SLEEP:
         return <AirlineSeatFlatRoundedIcon />;
     }
@@ -44,7 +47,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
               Bottle Feeding
             </h3>
             <p>
-              <b>Amount:</b> {`${amount} ounces`}<br />
+              <b>Amount:</b> {`${amount} ounce(s)`}<br />
               {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>
@@ -57,7 +60,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
               Breast Feeding
             </h3>
             <p>
-              <b>Duration:</b> {`${duration} minutes`}<br />
+              <b>Duration:</b> {`${duration} minute(s)`}<br />
               <b>Side:</b> {side}<br />
               {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
@@ -101,6 +104,21 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
               {!isNil(headCircumference) && <><b>Head Circumference:</b> {`${headCircumference} centimeters`}<br/></>}
               {!isNil(height) && <><b>Height:</b> {`${height} inches`}<br/></>}
               {!isNil(weight) && <><b>Weight:</b> {`${weight} pounds`}<br/></>}
+              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
+            </p>
+          </>
+        );
+      case LogType.PUMPING:
+        const { duration: pumpDuration, leftAmount, rightAmount } = log as Pumping & BaseLog;
+        return (
+          <>
+            <h3 className='vertical-timeline-element-title'>
+              {`Pumped ${leftAmount + rightAmount} Ounce(s)`}
+            </h3>
+            <p>
+              <b>Duration:</b> {`${pumpDuration} minute(s)`}<br />
+              <b>Left Breast:</b> {`${leftAmount} ounce(s)`}<br />
+              <b>Right Breast:</b> {`${rightAmount} ounce(s)`}<br />
               {!isNil(notes) && <><b>Notes:</b> {notes}</>}
             </p>
           </>

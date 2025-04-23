@@ -15,7 +15,7 @@ enum TrendType {
 
 export const TrendsPage = () => {
   const [months, setMonths] = useState<number>(1);
-  const [type, setType] = useState<TrendType>(TrendType.GROWTH);
+  const [type, setType] = useState<TrendType>(TrendType.FEEDING);
   const monthOptions = [1, 3, 6, 12];
 
   const getCharts = () => {

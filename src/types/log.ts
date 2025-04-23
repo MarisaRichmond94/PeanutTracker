@@ -1,4 +1,4 @@
-import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Sleep } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Pumping, Sleep } from '@models';
 
 export type BaseLog = {
   id: string;
@@ -13,6 +13,7 @@ export enum LogType {
   CHANGING = 'changing',
   FEEDING = 'feeding',
   GROWTH = 'growth',
+  PUMPING = 'pumping',
   SLEEP = 'sleep',
 }
 
@@ -22,4 +23,5 @@ export type LogEntry =
   (Changing & BaseLog) |
   (Feeding & BaseLog) |
   (Growth & BaseLog) |
+  (Pumping & BaseLog) |
   (Sleep & BaseLog);

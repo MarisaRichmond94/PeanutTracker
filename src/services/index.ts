@@ -5,4 +5,5 @@ export * from './Feeding.service';
 export * from './Growth.service';
 export * from './Note.service';
 export * from './Profile.service';
+export * from './Pumping.service';
 export * from './Sleep.service';

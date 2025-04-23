@@ -8,5 +8,7 @@ export const getTitle = (method: FeedingMethod) => {
       return 'Breast Feeding';
     case FeedingMethod.FOOD:
       return 'Feeding';
+    case FeedingMethod.PUMP:
+      return 'Pumping';
   }
 };
