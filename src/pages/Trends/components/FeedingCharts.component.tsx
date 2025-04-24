@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { Divider, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
@@ -9,21 +9,21 @@ import { BottleFeeding, BreastFeeding, Pumping } from '@models';
 
 type BottleFeedingEntry = {
   date: string;
-  supplementCount: number;
-  ouncesSupplemented: number;
+  count: number;
+  ounces: number;
 }
 
 type BreastFeedingEntry = {
   date: string;
   duration: number;
-  breastFeedingCount: number;
+  count: number;
 }
 
 type PumpingEntry = {
   date: string;
   duration: number;
-  pumpingCount: number;
-  ouncesPumped: number;
+  count: number;
+  ounces: number;
 }
 
 export const FeedingCharts = ({ months }: { months: number }) => {
@@ -46,75 +46,75 @@ export const FeedingCharts = ({ months }: { months: number }) => {
   };
 
   const convertToBottleFeedingEntries = (feedings: BottleFeeding[]): BottleFeedingEntry[] => {
-    const summaryMap = new Map<string, { ouncesSupplemented: number, supplementCount: number }>();
+    const summaryMap = new Map<string, { ounces: number, count: number }>();
 
     for (const feeding of feedings) {
-      const date = dayjs(feeding.timestamp).format('YYYY-MM-DD');
+      const date = dayjs(feeding.timestamp).format('M/D');
 
       if (!summaryMap.has(date)) {
-        summaryMap.set(date, { ouncesSupplemented: 0, supplementCount: 0 });
+        summaryMap.set(date, { ounces: 0, count: 0 });
       }
 
       const current = summaryMap.get(date)!;
-      current.ouncesSupplemented += feeding.amount;
-      current.supplementCount += 1;
+      current.ounces += feeding.amount;
+      current.count += 1;
     };
 
     return Array.from(summaryMap.entries()).map(
-      ([date, { ouncesSupplemented, supplementCount }]) => ({
+      ([date, { ounces, count }]) => ({
         date,
-        ouncesSupplemented,
-        supplementCount,
+        ounces,
+        count,
       })
     );
   };
 
   const convertToBreastFeedingEntries = (feedings: BreastFeeding[]): BreastFeedingEntry[] => {
-    const summaryMap = new Map<string, { duration: number, breastFeedingCount: number }>();
+    const summaryMap = new Map<string, { duration: number, count: number }>();
 
     for (const feeding of feedings) {
-      const date = dayjs(feeding.timestamp).format('YYYY-MM-DD');
+      const date = dayjs(feeding.timestamp).format('M/D');
 
       if (!summaryMap.has(date)) {
-        summaryMap.set(date, { duration: feeding.duration, breastFeedingCount: 0 });
+        summaryMap.set(date, { duration: feeding.duration, count: 0 });
       }
 
       const current = summaryMap.get(date)!;
       current.duration += feeding.duration;
-      current.breastFeedingCount += 1;
+      current.count += 1;
     };
 
     return Array.from(summaryMap.entries()).map(
-      ([date, { duration, breastFeedingCount }]) => ({
+      ([date, { duration, count }]) => ({
         date,
         duration,
-        breastFeedingCount,
+        count,
       })
     );
   };
 
   const convertToPumpingEntries = (feedings: Pumping[]): PumpingEntry[] => {
-    const summaryMap = new Map<string, { duration: number, ouncesPumped: number, pumpingCount: number }>();
+    const summaryMap = new Map<string, { duration: number, ounces: number, count: number }>();
 
     for (const feeding of feedings) {
-      const date = dayjs(feeding.timestamp).format('YYYY-MM-DD');
+      const date = dayjs(feeding.timestamp).format('M/D');
 
       if (!summaryMap.has(date)) {
-        summaryMap.set(date, { duration: feeding.duration, ouncesPumped: 0, pumpingCount: 0 });
+        summaryMap.set(date, { duration: feeding.duration, ounces: 0, count: 0 });
       }
 
       const current = summaryMap.get(date)!;
       current.duration += feeding.duration;
-      current.ouncesPumped += (feeding.leftAmount + feeding.rightAmount);
-      current.pumpingCount += 1;
+      current.ounces += (feeding.leftAmount + feeding.rightAmount);
+      current.count += 1;
     };
 
     return Array.from(summaryMap.entries()).map(
-      ([date, { duration, ouncesPumped, pumpingCount }]) => ({
+      ([date, { duration, ounces, count }]) => ({
         date,
         duration,
-        ouncesPumped,
-        pumpingCount,
+        ounces,
+        count,
       })
     );
   };
@@ -126,74 +126,72 @@ export const FeedingCharts = ({ months }: { months: number }) => {
 
   return (
     <x.div display='flex' flexDirection='column' gap='15px'>
-      <Typography>Breast Feeding Trends (In Minutes)</Typography>
+      <Typography>Breast Feeding Trends</Typography>
       <ResponsiveContainer width='100%' height={300}>
         <LineChart data={breastFeedingData}>
           <CartesianGrid strokeDasharray='3 3' />
           <XAxis dataKey='date' />
-          <YAxis label={{ value: 'minutes (total)', angle: -90, position: 'insideLeft' }} />
+          <YAxis label={{ value: 'mins breast fed', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
-          <Line type='monotone' data='duration' stroke='#8884d8' strokeWidth={2} dot />
+          <Line type='monotone' dataKey='duration' stroke='#8884d8' strokeWidth={2} dot unit=' mins' />
         </LineChart>
       </ResponsiveContainer>
-      <Typography>Breast Feeding Trends (Times Per Day)</Typography>
       <ResponsiveContainer width='100%' height={300}>
         <LineChart data={breastFeedingData}>
           <CartesianGrid strokeDasharray='3 3' />
           <XAxis dataKey='date' />
           <YAxis label={{ value: 'times', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
-          <Line type='monotone' dataKey='breastFeedingCount' stroke='#8884d8' strokeWidth={2} dot />
+          <Line type='monotone' dataKey='count' stroke='#8884d8' strokeWidth={2} dot unit=' daily feedings' />
         </LineChart>
       </ResponsiveContainer>
-      <Typography>Pumping Trends (In Minutes)</Typography>
+      <Divider sx={{ borderColor: 'white' }} />
+      <Typography>Pumping Trends</Typography>
       <ResponsiveContainer width='100%' height={300}>
         <LineChart data={pumpingData}>
           <CartesianGrid strokeDasharray='3 3' />
           <XAxis dataKey='date' />
-          <YAxis label={{ value: 'minutes (total)', angle: -90, position: 'insideLeft' }} />
+          <YAxis label={{ value: 'mins pumped', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
-          <Line type='monotone' dataKey='duration' stroke='#8884d8' strokeWidth={2} dot />
+          <Line type='monotone' dataKey='duration' stroke='#8884d8' strokeWidth={2} dot unit=' mins' />
         </LineChart>
       </ResponsiveContainer>
-      <Typography>Pumping Trends (Times Per Day)</Typography>
       <ResponsiveContainer width='100%' height={300}>
         <LineChart data={pumpingData}>
           <CartesianGrid strokeDasharray='3 3' />
           <XAxis dataKey='date' />
-          <YAxis label={{ value: 'times', angle: -90, position: 'insideLeft' }} />
+          <YAxis label={{ value: 'daily pumps', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
-          <Line type='monotone' dataKey='pumpingCount' stroke='#8884d8' strokeWidth={2} dot />
+          <Line type='monotone' dataKey='count' stroke='#8884d8' strokeWidth={2} dot unit=' pumps' />
         </LineChart>
       </ResponsiveContainer>
-      <Typography>Pumping Trends (Ounces Per Day)</Typography>
       <ResponsiveContainer width='100%' height={300}>
         <LineChart data={pumpingData}>
           <CartesianGrid strokeDasharray='3 3' />
           <XAxis dataKey='date' />
-          <YAxis label={{ value: 'ounce(s) per day', angle: -90, position: 'insideLeft' }} />
+          <YAxis label={{ value: 'oz(s) pumped', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
-          <Line type='monotone' dataKey='ouncesPumped' stroke='#8884d8' strokeWidth={2} dot />
+          <Line type='monotone' dataKey='ounces' stroke='#8884d8' strokeWidth={2} dot unit=' oz(s)' />
         </LineChart>
       </ResponsiveContainer>
-      <Typography>Bottle Feeding Trends (Times Per Day)</Typography>
+      <Divider sx={{ borderColor: 'white' }} />
+      <Typography>Bottle Feeding Trends</Typography>
       <ResponsiveContainer width='100%' height={300}>
         <LineChart data={bottleFeedingData}>
           <CartesianGrid strokeDasharray='3 3' />
           <XAxis dataKey='date' />
-          <YAxis label={{ value: 'times', angle: -90, position: 'insideLeft' }} />
+          <YAxis label={{ value: 'supplement count', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
-          <Line type='monotone' data='supplementCount' stroke='#8884d8' strokeWidth={2} dot />
+          <Line type='monotone' dataKey='count' stroke='#8884d8' strokeWidth={2} dot unit=' bottles supplemented' />
         </LineChart>
       </ResponsiveContainer>
-      <Typography>Bottle Feeding Trends (Ounces Per Day)</Typography>
       <ResponsiveContainer width='100%' height={300}>
         <LineChart data={bottleFeedingData}>
           <CartesianGrid strokeDasharray='3 3' />
           <XAxis dataKey='date' />
-          <YAxis label={{ value: 'ounce(s) per day', angle: -90, position: 'insideLeft' }} />
+          <YAxis label={{ value: 'oz supplemented', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
-          <Line type='monotone' dataKey='ouncesSupplemented' stroke='#8884d8' strokeWidth={2} dot />
+          <Line type='monotone' dataKey='ounces' stroke='#8884d8' strokeWidth={2} dot unit='oz' />
         </LineChart>
       </ResponsiveContainer>
     </x.div>

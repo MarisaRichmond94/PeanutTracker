@@ -98,7 +98,7 @@ export const NoteForm = ({ onSuccess }: NoteFormProps) => {
     <Form
       fields={fields}
       isFormExpanded={isFormExpanded}
-      type='Changing'
+      type='Note'
       onDiscard={onDiscard}
       onSubmit={onSubmit}
       onToggleFormState={onToggleFormState}
