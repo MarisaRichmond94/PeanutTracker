@@ -18,7 +18,7 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
   const { firstName } = useProfile();
 
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
-  const [endTime, setEndTime] = useState<Dayjs>(dayjs());
+  const [endTime, setEndTime] = useState<Dayjs>(dayjs().add(1, 'minute'));
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   const [location, setLocation] = useState<SleepLocation>(SleepLocation.CRIB);
   const [notes, setNotes] = useState<string | null>(null);
@@ -69,6 +69,10 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
   };
 
   const onToggleFormState = (_: SyntheticEvent, isExpanded: boolean) => {
+    // pull latest time every time there's a new log
+    setStartTime(dayjs());
+    setEndTime(dayjs().add(1, 'minute'));
+    // expand the form
     setIsFormExpanded(isExpanded);
   };
 

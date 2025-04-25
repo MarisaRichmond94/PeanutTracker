@@ -47,6 +47,7 @@ export const GrowthForm = ({ onSuccess }: GrowthFormProps) => {
   };
 
   const onToggleFormState = (_: SyntheticEvent, isExpanded: boolean) => {
+    setTimestamp(dayjs());
     setIsFormExpanded(isExpanded);
   };
 

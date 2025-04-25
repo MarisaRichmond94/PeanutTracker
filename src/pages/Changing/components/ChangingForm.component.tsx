@@ -44,6 +44,7 @@ export const ChangingForm = ({ onSuccess }: ChangingFormProps) => {
   };
 
   const onToggleFormState = (_: SyntheticEvent, isExpanded: boolean) => {
+    setTimestamp(dayjs());
     setIsFormExpanded(isExpanded);
   };
 

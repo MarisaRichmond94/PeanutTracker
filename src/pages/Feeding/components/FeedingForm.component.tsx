@@ -24,7 +24,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
   // breastfeeding only
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
-  const [endTime, setEndTime] = useState<Dayjs>(dayjs());
+  const [endTime, setEndTime] = useState<Dayjs>(dayjs().add(1, 'minute'));
   const [side, setSide] = useState<FeedingSide>(FeedingSide.BOTH);
   // feeding only
   const [food, setFood] = useState<string | undefined>();
@@ -112,6 +112,10 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   };
 
   const onToggleFormState = (_: SyntheticEvent, isExpanded: boolean) => {
+    // pull latest time every time there's a new log
+    setStartTime(dayjs());
+    setEndTime(dayjs().add(1, 'minute'));
+    // expand the form
     setIsFormExpanded(isExpanded);
   };
 
