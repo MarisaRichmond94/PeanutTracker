@@ -293,6 +293,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
             <EditLogRow field='Side' value={
               <x.div display='flex' gap='10px'>
                 <TextField
+                  className='skinny-text-field'
                   id='breast-feeding-start-pounds-field'
                   label='lbs'
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedStartPounds(Number(event.target.value))}
@@ -306,6 +307,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
                   value={updatedStartPounds}
                 />
                 <TextField
+                  className='skinny-text-field'
                   id='breast-feeding-start-ounces-field'
                   label='oz'
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedStartOunces(Number(event.target.value))}
@@ -336,6 +338,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
             <EditLogRow field='Side' value={
               <x.div display='flex' gap='10px'>
                 <TextField
+                  className='skinny-text-field'
                   id='breast-feeding-end-pounds-field'
                   label='lbs'
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedEndPounds(Number(event.target.value))}
@@ -349,6 +352,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
                   value={updatedEndPounds}
                 />
                 <TextField
+                  className='skinny-text-field'
                   id='breast-feeding-end-ounces-field'
                   label='oz'
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedEndOunces(Number(event.target.value))}
