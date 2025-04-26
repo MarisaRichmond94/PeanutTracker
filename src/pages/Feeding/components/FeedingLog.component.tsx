@@ -3,15 +3,15 @@ import { CardContent, Divider, FormControl, MenuItem, Select, SelectChangeEvent,
 import { MobileDateTimePicker } from '@mui/x-date-pickers';
 import { x } from '@xstyled/styled-components';
 import dayjs, { Dayjs } from 'dayjs';
-import { isNil } from 'lodash';
+import { isEmpty, isNil } from 'lodash';
 import { ChangeEvent, useEffect, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
 import { useProfile } from '@contexts';
-import { BottleFeeding, BreastFeeding, Feeding, FeedingSide, Pumping } from '@models';
+import { BottleFeeding, BottleType, BreastFeeding, Feeding, FeedingSide, Pumping } from '@models';
 import { deleteBottleFeeding, deleteBreastFeeding, deleteFeeding, deletePumping, updateBottleFeeding, updateBreastFeeding, updateFeeding, updatePumping } from '@services';
 import { FeedingEntity, FeedingMethod } from '@types';
-import { addMinutes, formatTimestamp, getTitle, toCapitalCase } from '@utils';
+import { addMinutes, calculateOunceDifference, formatTimestamp, getTitle, toCapitalCase } from '@utils';
 
 interface FeedingLogProps {
   feeding: FeedingEntity;
@@ -26,10 +26,15 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   // bottlefeeding only
   const [updatedAmount, setUpdatedAmount] = useState<number | undefined>();
   const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
+  const [updatedBottleType, setUpdatedBottleType] = useState<BottleType>(BottleType.BREAST_MILK);
   // breastfeeding only
-  const [updatedEndTime, setUpdatedEndTime] = useState<Dayjs>(dayjs(timestamp));
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
+  const [updatedEndTime, setUpdatedEndTime] = useState<Dayjs>(dayjs(timestamp));
+  const [updatedEndPounds, setUpdatedEndPounds] = useState<number | null>(null);
+  const [updatedEndOunces, setUpdatedEndOunces] = useState<number | null>(null);
   const [updatedSide, setUpdatedSide] = useState<FeedingSide | undefined>();
+  const [updatedStartPounds, setUpdatedStartPounds] = useState<number | null>(null);
+  const [updatedStartOunces, setUpdatedStartOunces] = useState<number | null>(null);
   // feeding only
   const [updatedFood, setUpdatedFood] = useState<string | undefined>();
   const [foodErrorText, setFoodErrorText] = useState<string | undefined>();
@@ -53,16 +58,24 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   }, [feeding]);
 
   const resetUniqueState = () => {
+    const { notes } = feeding;
+    setUpdatedNotes(notes);
+
     switch (method) {
       case FeedingMethod.BOTTLE:
-        const { amount } = feeding as BottleFeeding;
+        const { amount, type } = feeding as BottleFeeding;
         setUpdatedAmount(amount);
+        setUpdatedBottleType(type);
         break;
       case FeedingMethod.BREAST:
-        const { duration, side, timestamp } = feeding as BreastFeeding;
+        const { duration, endPounds, endOunces, side, startPounds, startOunces, timestamp } = feeding as BreastFeeding;
         setUpdatedStartTime(dayjs(timestamp));
         setUpdatedEndTime(dayjs(addMinutes(timestamp, duration)));
         setUpdatedSide(side);
+        setUpdatedStartPounds(startPounds);
+        setUpdatedStartOunces(startOunces);
+        setUpdatedEndPounds(endPounds);
+        setUpdatedEndOunces(endOunces);
         break;
       case FeedingMethod.FOOD:
         const { food, reaction } = feeding as Feeding;
@@ -80,6 +93,8 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { resetUniqueState(); }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { resetUniqueState(); }, [isInEditMode]);
 
   const clearErrors = () => {
     setAmountErrorText(undefined);
@@ -121,7 +136,10 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
           setAmountErrorText('Missing required amount');
           return;
         }
-        await updateBottleFeeding(idToUpdate, { amount: updatedAmount, notes: updatedNotes, timestamp: updatedStartTime.toISOString() });
+        await updateBottleFeeding(
+          idToUpdate,
+          { amount: updatedAmount, notes: updatedNotes, timestamp: updatedStartTime.toISOString(), type: updatedBottleType },
+        );
         break;
       case FeedingMethod.BREAST:
         if (updatedStartTime.isAfter(updatedEndTime)) {
@@ -132,7 +150,19 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
           setDurationErrorText('End time cannot match start time');
           return;
         }
-        await updateBreastFeeding(idToUpdate, { duration: updatedEndTime.diff(updatedStartTime, 'minute'), side: updatedSide, notes: updatedNotes, timestamp: updatedStartTime.toISOString() });
+        await updateBreastFeeding(
+          idToUpdate,
+          {
+            duration: updatedEndTime.diff(updatedStartTime, 'minute'),
+            endOunces: updatedEndOunces,
+            endPounds: updatedEndPounds,
+            notes: updatedNotes,
+            side: updatedSide,
+            startOunces: updatedStartOunces,
+            startPounds: updatedStartPounds,
+            timestamp: updatedStartTime.toISOString(),
+          },
+        );
         break;
       case FeedingMethod.FOOD:
         await updateFeeding(idToUpdate, { food: updatedFood, reaction: updatedReaction, timestamp: updatedStartTime.toISOString() })
@@ -154,16 +184,25 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   const getContentFields = () => {
     switch (method) {
       case FeedingMethod.BOTTLE:
-        const { amount } = feeding as BottleFeeding;
+        const { amount, type } = feeding as BottleFeeding;
         return (
-          <LogRow field='Amount' value={`${amount} ounce(s)`} />
+          <>
+            <LogRow field='Amount' value={`${amount} ounce(s)`} />
+            <LogRow field='Type' value={type} />
+          </>
         );
       case FeedingMethod.BREAST:
-        const { duration, side } = feeding as BreastFeeding;
+        const { duration, side, startPounds, startOunces, endPounds, endOunces } = feeding as BreastFeeding;
+        const showWeightChange = [startPounds, startOunces, endPounds, endOunces].every((value) => value != null);
+
         return (
           <>
             <LogRow field='Duration' value={`${duration} minute(s)`} />
             <LogRow field='Side' value={toCapitalCase(side)} />
+            {
+              showWeightChange &&
+              <LogRow field='Intake' value={`${calculateOunceDifference(startPounds!, startOunces!, endPounds!, endOunces!)} ounce(s)`} />
+            }
           </>
         );
       case FeedingMethod.FOOD:
@@ -225,12 +264,62 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
                 value={updatedAmount}
               />
             } />
+            <EditLogRow field='Type' value={
+              <FormControl fullWidth>
+                <Select
+                  className='skinny-select'
+                  id='bottle-type-select'
+                  label='Type'
+                  labelId='bottle-type-select-label'
+                  onChange={(event: SelectChangeEvent<BottleType>) => setUpdatedBottleType(event.target.value as BottleType)}
+                  value={updatedBottleType}
+                >
+                  {
+                    Object.values(BottleType).map((it, index) =>
+                      <MenuItem key={`bottle-type-${index}`} value={it}>
+                        {toCapitalCase(it)}
+                      </MenuItem>
+                    )
+                  }
+                </Select>
+              </FormControl>
+            } />
           </>
         );
       case FeedingMethod.BREAST:
         return (
           <>
             {editableStartTimeField}
+            <EditLogRow field='Side' value={
+              <x.div display='flex' gap='10px'>
+                <TextField
+                  id='breast-feeding-start-pounds-field'
+                  label='lbs'
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedStartPounds(Number(event.target.value))}
+                  placeholder='Pounds before feed'
+                  slotProps={{
+                    inputLabel: {
+                      shrink: true,
+                    },
+                  }}
+                  type='number'
+                  value={updatedStartPounds}
+                />
+                <TextField
+                  id='breast-feeding-start-ounces-field'
+                  label='oz'
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedStartOunces(Number(event.target.value))}
+                  placeholder='Ounces before feed'
+                  slotProps={{
+                    inputLabel: {
+                      shrink: true,
+                    },
+                  }}
+                  type='number'
+                  value={updatedStartOunces}
+                />
+              </x.div>
+            } />
             <EditLogRow field='End' value={
               <MobileDateTimePicker
                 value={updatedEndTime}
@@ -243,6 +332,36 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
                   },
                 }}
               />
+            } />
+            <EditLogRow field='Side' value={
+              <x.div display='flex' gap='10px'>
+                <TextField
+                  id='breast-feeding-end-pounds-field'
+                  label='lbs'
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedEndPounds(Number(event.target.value))}
+                  placeholder='Pounds after feed'
+                  slotProps={{
+                    inputLabel: {
+                      shrink: true,
+                    },
+                  }}
+                  type='number'
+                  value={updatedEndPounds}
+                />
+                <TextField
+                  id='breast-feeding-end-ounces-field'
+                  label='oz'
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedEndOunces(Number(event.target.value))}
+                  placeholder='Ounces after feed'
+                  slotProps={{
+                    inputLabel: {
+                      shrink: true,
+                    },
+                  }}
+                  type='number'
+                  value={updatedEndOunces}
+                />
+              </x.div>
             } />
             <EditLogRow field='Side' value={
               <FormControl fullWidth>
@@ -390,7 +509,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
           <TextField
             className='skinny-text-field'
             id='feeding-notes-field'
-            onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedNotes(event.target.value)}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setUpdatedNotes(isEmpty(event.target.value) ? null : event.target.value)}
             placeholder={`Any additional details about ${firstName}'s feeding?`}
             slotProps={{
               inputLabel: {

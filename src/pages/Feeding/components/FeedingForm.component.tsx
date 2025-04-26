@@ -1,13 +1,14 @@
 
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import { MobileDateTimePicker } from '@mui/x-date-pickers';
+import { x } from '@xstyled/styled-components';
 import dayjs, { Dayjs } from 'dayjs';
 import { isNil } from 'lodash';
 import { ChangeEvent, SyntheticEvent, useState } from 'react';
 
 import { Form } from '@components';
 import { useProfile } from '@contexts';
-import { FeedingSide } from '@models';
+import { BottleType, FeedingSide } from '@models';
 import { createNewBottleFeeding, createNewBreastFeeding, createNewFeeding, createNewPumping } from '@services';
 import { FeedingMethod } from '@types';
 import { toCapitalCase } from '@utils';
@@ -22,10 +23,15 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   // bottlefeeding only
   const [amount, setAmount] = useState<number | undefined>();
   const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
+  const [bottleType, setBottleType] = useState<BottleType>(BottleType.BREAST_MILK);
   // breastfeeding only
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
   const [endTime, setEndTime] = useState<Dayjs>(dayjs().add(1, 'minute'));
+  const [endPounds, setEndPounds] = useState<number | null>(null);
+  const [endOunces, setEndOunces] = useState<number | null>(null);
   const [side, setSide] = useState<FeedingSide>(FeedingSide.BOTH);
+  const [startPounds, setStartPounds] = useState<number | null>(null);
+  const [startOunces, setStartOunces] = useState<number | null>(null);
   // feeding only
   const [food, setFood] = useState<string | undefined>();
   const [foodErrorText, setFoodErrorText] = useState<string | undefined>();
@@ -50,8 +56,11 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
 
   const clearState = () => {
     setAmount(undefined);
+    setBottleType(BottleType.BREAST_MILK);
     setDuration(0);
     setEndTime(dayjs());
+    setEndPounds(null);
+    setEndOunces(null);
     setFood(undefined);
     setLeftAmount(0);
     setMethod(FeedingMethod.BREAST);
@@ -60,6 +69,8 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
     setRightAmount(0);
     setSide(FeedingSide.BOTH);
     setStartTime(dayjs());
+    setStartPounds(null);
+    setStartOunces(null);
   };
 
   const onDiscard = () => {
@@ -77,7 +88,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
           setAmountErrorText('Missing required amount');
           return;
         }
-        await createNewBottleFeeding({ amount, method, notes, timestamp: startTime.toISOString() });
+        await createNewBottleFeeding({ amount, method, notes, timestamp: startTime.toISOString(), type: bottleType });
         break;
       case FeedingMethod.BREAST:
         if (startTime.isAfter(endTime)) {
@@ -88,7 +99,17 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
           setDurationErrorText('End time cannot match start time');
           return;
         }
-        await createNewBreastFeeding({ duration: endTime.diff(startTime, 'minute'), side, method, notes, timestamp: startTime.toISOString() });
+        await createNewBreastFeeding({
+          duration: endTime.diff(startTime, 'minute'),
+          endPounds,
+          endOunces,
+          method,
+          notes,
+          side,
+          startOunces,
+          startPounds,
+          timestamp: startTime.toISOString(),
+        });
         break;
       case FeedingMethod.FOOD:
         if (isNil(food)) {
@@ -198,6 +219,24 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
               type='number'
               value={amount}
             />
+            <FormControl fullWidth>
+              <InputLabel id='bottle-type-select-label'>Type</InputLabel>
+              <Select
+                id='bottle-type-select'
+                label='Type'
+                labelId='bottle-type-select-label'
+                onChange={(event: SelectChangeEvent<BottleType>) => setBottleType(event.target.value as BottleType)}
+                value={bottleType}
+              >
+                {
+                  Object.values(BottleType).map((it, index) =>
+                    <MenuItem key={`bottle-type-${index}`} value={it}>
+                      {toCapitalCase(it)}
+                    </MenuItem>
+                  )
+                }
+              </Select>
+            </FormControl>
             {noteField}
           </>
         );
@@ -224,6 +263,34 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
               </Select>
             </FormControl>
             {startTimePicker}
+            <x.div display='flex' gap='10px'>
+              <TextField
+                id='breast-feeding-start-pounds-field'
+                label='lbs'
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setStartPounds(Number(event.target.value))}
+                placeholder='Pounds before feed'
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='number'
+                value={startPounds}
+              />
+              <TextField
+                id='breast-feeding-start-ounces-field'
+                label='oz'
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setStartOunces(Number(event.target.value))}
+                placeholder='Ounces before feed'
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='number'
+                value={startOunces}
+              />
+            </x.div>
             <MobileDateTimePicker
               label='End Time'
               value={endTime}
@@ -235,6 +302,34 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
                 },
               }}
             />
+            <x.div display='flex' gap='10px'>
+              <TextField
+                id='breast-feeding-end-pounds-field'
+                label='lbs'
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setEndPounds(Number(event.target.value))}
+                placeholder='Pounds after feed'
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='number'
+                value={endPounds}
+              />
+              <TextField
+                id='breast-feeding-end-ounces-field'
+                label='oz'
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setEndOunces(Number(event.target.value))}
+                placeholder='Ounces after feed'
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='number'
+                value={endOunces}
+              />
+            </x.div>
             {noteField}
           </>
         );

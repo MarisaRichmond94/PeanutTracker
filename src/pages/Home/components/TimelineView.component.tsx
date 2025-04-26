@@ -9,9 +9,9 @@ import SanitizerRoundedIcon from '@mui/icons-material/SanitizerRounded';
 import { isNil } from 'lodash';
 import { VerticalTimeline, VerticalTimelineElement }  from 'react-vertical-timeline-component';
 
-import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Pumping, Sleep, SleepLocation, SleepType, WasteColor, WasteConsistency, WasteType } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Pumping, Sleep, SleepLocation, SleepType, WasteType } from '@models';
 import { BaseLog, LogEntry, LogType } from '@types';
-import { formatMinutesToHoursAndMinutes, toCapitalCase } from '@utils';
+import { calculateOunceDifference, formatMinutesToHoursAndMinutes, toCapitalCase } from '@utils';
 
 type TimelineViewProps = {
   logs: LogEntry[];
@@ -40,45 +40,29 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
 
     switch (log.logType) {
       case LogType.BOTTLE_FEEDING:
-        const { amount } = log as BottleFeeding & BaseLog;
+        const { amount, type } = log as BottleFeeding & BaseLog;
         return (
-          <>
-            <h3 className='vertical-timeline-element-title'>
-              Bottle Feeding
-            </h3>
-            <p>
-              <b>Amount:</b> {`${amount} ounce(s)`}<br />
-              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
-            </p>
-          </>
+          <h3 className='vertical-timeline-element-title'>
+            {`Supplemented with ${amount} ounce(s) of ${type}`}
+          </h3>
         );
       case LogType.BREAST_FEEDING:
-        const { duration, side } = log as BreastFeeding & BaseLog;
+        const { duration, side, startPounds, startOunces, endPounds, endOunces } = log as BreastFeeding & BaseLog;
+        const showWeightChange = [startPounds, startOunces, endPounds, endOunces].every((value) => value != null);
         return (
-          <>
-            <h3 className='vertical-timeline-element-title'>
-              Breast Feeding
-            </h3>
-            <p>
-              <b>Duration:</b> {`${duration} minute(s)`}<br />
-              <b>Side:</b> {side}<br />
-              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
-            </p>
-          </>
+          <h3 className='vertical-timeline-element-title'>
+            {
+              showWeightChange
+                ? `Transferred ${calculateOunceDifference(startPounds!, startOunces!, endPounds!, endOunces!)} ounce(s) from ${side} side(s) in ${duration} minute(s)`
+                : `Breast fed on ${side} side(s) for ${duration} minute(s)`
+            }
+          </h3>
         );
       case LogType.CHANGING:
-        const { color, consistency, type: changingType } = log as Changing & BaseLog;
+        const { type: changingType } = log as Changing & BaseLog;
         const formattedType = changingType === WasteType.BOTH ? 'Wet And Dirty' : changingType;
-
         return (
-          <>
-            <h3 className='vertical-timeline-element-title'>{toCapitalCase(`Changed ${formattedType} Diaper`)}</h3>
-            <p>
-              {color !== WasteColor.NOT_APPLICABLE && <><b>Color:</b> {color}<br/></>}
-              {consistency !== WasteConsistency.NOT_APPLICABLE && <><b>Consistency:</b> {consistency}<br/></>}
-              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
-            </p>
-          </>
+          <h3 className='vertical-timeline-element-title'>{toCapitalCase(`Changed ${formattedType} Diaper`)}</h3>
         );
       case LogType.FEEDING:
         const { food, reaction } = log as Feeding & BaseLog;
@@ -111,32 +95,17 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
       case LogType.PUMPING:
         const { duration: pumpDuration, leftAmount, rightAmount } = log as Pumping & BaseLog;
         return (
-          <>
-            <h3 className='vertical-timeline-element-title'>
-              {`Pumped ${leftAmount + rightAmount} Ounce(s)`}
-            </h3>
-            <p>
-              <b>Duration:</b> {`${pumpDuration} minute(s)`}<br />
-              <b>Left Breast:</b> {`${leftAmount} ounce(s)`}<br />
-              <b>Right Breast:</b> {`${rightAmount} ounce(s)`}<br />
-              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
-            </p>
-          </>
+          <h3 className='vertical-timeline-element-title'>
+            {`Pumped ${leftAmount + rightAmount} ounce(s) in ${pumpDuration} minute(s)`}
+          </h3>
         );
       case LogType.SLEEP:
         const { duration: sleepDuration, location, type: sleepType } = log as Sleep & BaseLog;
         const sleepAction = sleepType === SleepType.NAP ? 'Napped' : 'Slept';
-
         return (
-          <>
-            <h3 className='vertical-timeline-element-title'>
-              {location === SleepLocation.CONTACT_NAP ? 'Contact Napped' : toCapitalCase(`${sleepAction} in ${location}`)}
-            </h3>
-            <p>
-              <b>Duration:</b> {formatMinutesToHoursAndMinutes(sleepDuration)}<br/>
-              {!isNil(notes) && <><b>Notes:</b> {notes}</>}
-            </p>
-          </>
+          <h3 className='vertical-timeline-element-title'>
+            {`${location === SleepLocation.CONTACT_NAP ? 'Contact Napped' : toCapitalCase(`${sleepAction} in ${location}`)} for ${formatMinutesToHoursAndMinutes(sleepDuration)}`}
+          </h3>
         );
     }
   };

@@ -9,8 +9,12 @@ export enum FeedingSide {
 export type BreastFeeding = {
   id: string;
   duration: number;
-  side: FeedingSide;
+  endPounds: number | null;
+  endOunces: number | null;
   method: FeedingMethod.BREAST;
   notes: string | null;
+  side: FeedingSide;
+  startPounds: number | null;
+  startOunces: number | null;
   timestamp: string;
 }

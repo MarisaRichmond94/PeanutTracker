@@ -15,7 +15,7 @@ import { getBottleFeedingsInRange, getBreastFeedingsInRange, getChangingsInRange
 import { LogEntry, LogType } from '@types';
 import { getTimeOnly } from '@utils';
 
-import { TimelineView } from './components';
+import { DailyHighlights, TimelineView } from './components';
 
 export const HomePage = () => {
   const [bottleFeedings, setBottleFeedings] = useState<BottleFeeding[] | undefined>();
@@ -83,7 +83,7 @@ export const HomePage = () => {
     <>
       <x.div display='flex' flexDirection='column' gap='10px' marginBottom='15px'>
         <x.div alignItems='center' display='flex' flexDirection='column'>
-          <Typography variant='h5'><b>Activity Snapshot</b></Typography>
+          <Typography variant='h5'><b>Activity</b></Typography>
           <x.div display='flex' flexDirection='row' gap='15px' margin='10px 25px 0 25px'>
             <MobileDatePicker
               disabled={isDailySnapshot}
@@ -104,6 +104,12 @@ export const HomePage = () => {
         </x.div>
         <Divider sx={{ borderColor: 'white' }} />
       </x.div>
+      {
+        isDailySnapshot &&
+        <x.div margin='15px'>
+          <DailyHighlights />
+        </x.div>
+      }
       {getLogs()}
     </>
   );
