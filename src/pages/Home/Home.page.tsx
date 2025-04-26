@@ -15,7 +15,7 @@ import { getBottleFeedingsInRange, getBreastFeedingsInRange, getChangingsInRange
 import { LogEntry, LogType } from '@types';
 import { getTimeOnly } from '@utils';
 
-import { DailyHighlights, TimelineView } from './components';
+import { Highlights, TimelineView } from './components';
 
 export const HomePage = () => {
   const [bottleFeedings, setBottleFeedings] = useState<BottleFeeding[] | undefined>();
@@ -104,12 +104,9 @@ export const HomePage = () => {
         </x.div>
         <Divider sx={{ borderColor: 'white' }} />
       </x.div>
-      {
-        isDailySnapshot &&
-        <x.div margin='15px'>
-          <DailyHighlights />
-        </x.div>
-      }
+      <x.div margin='15px'>
+        <Highlights logs={getCombinedLogs()} />
+      </x.div>
       {getLogs()}
     </>
   );

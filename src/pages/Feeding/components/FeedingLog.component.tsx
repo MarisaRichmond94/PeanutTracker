@@ -201,7 +201,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
             <LogRow field='Side' value={toCapitalCase(side)} />
             {
               showWeightChange &&
-              <LogRow field='Intake' value={`${calculateOunceDifference(startPounds!, startOunces!, endPounds!, endOunces!)} ounce(s)`} />
+              <LogRow field='Transferred' value={`${calculateOunceDifference(startPounds!, startOunces!, endPounds!, endOunces!)} ounce(s)`} />
             }
           </>
         );
