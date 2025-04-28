@@ -115,25 +115,25 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
         <Divider sx={{ borderColor: 'white' }} />
       </AccordionSummary>
       <AccordionDetails>
-        <Typography>Breast Feeding</Typography>
+        <Typography>Breast Feedings</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field='Total (Average)' value={breastFeedings} />
+        <LogRow field='Total (Average)' value={`${breastFeedings} feedings`} />
         <LogRow field='Time (Average)' value={formatMinutesToHoursAndMinutes(breastFeedingDuration || 0)} />
-        <LogRow field='Ounces Transferred (Average)' value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
+        <LogRow field='Transferred (Average)' value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
         <Typography sx={{ pt: 1 }}>Supplementations</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field='Total (Average)' value={supplementations} />
-        <LogRow field='Ounces Supplemented (Average)' value={`${ouncesSupplemented || 0} ounce(s)`} />
-        <Typography sx={{ pt: 1 }}>Pumping</Typography>
+        <LogRow field='Total (Average)' value={`${supplementations} supplementations`} />
+        <LogRow field='Supplemented (Average)' value={`${ouncesSupplemented || 0} ounce(s)`} />
+        <Typography sx={{ pt: 1 }}>Pump Sessions</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field='Total (Average)' value={pumpSessions} />
+        <LogRow field='Total (Average)' value={`${pumpSessions} sessions`} />
         <LogRow field='Time (Average)' value={formatMinutesToHoursAndMinutes(pumpTime || 0)} />
-        <LogRow field='Ounces Pumped (Average)' value={`${ouncesPumped || 0} ounce(s)`} />
-        <Typography sx={{ pt: 1 }}>Changing</Typography>
+        <LogRow field='Pumped (Average)' value={`${ouncesPumped || 0} ounce(s)`} />
+        <Typography sx={{ pt: 1 }}>Diaper Changes</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field='Dirty Diapers (Average)' value={dirtyDiapers} />
-        <LogRow field='Wet Diapers (Average)' value={wetDiapers} />
-        <LogRow field='Total (Average)' value={totalDiapers} />
+        <LogRow field='Dirty (Average)' value={`${dirtyDiapers} diapers`} />
+        <LogRow field='Wet (Average)' value={`${wetDiapers} diapers`} />
+        <LogRow field='Total (Average)' value={`${totalDiapers} diapers`} />
         <Typography sx={{ pt: 1 }}>Growth</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
         <LogRow field='Weight Change' value={weightChange || 'N/A'} />
