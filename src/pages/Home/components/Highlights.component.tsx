@@ -1,12 +1,15 @@
 import { ExpandMoreRounded } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Divider, Typography } from '@mui/material';
+import dayjs from 'dayjs';
 import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
 import { LogRow } from '@components';
-import { BottleFeeding, BreastFeeding, Changing, Growth, Pumping, WasteType } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Growth, Pumping } from '@models';
 import { LogEntry, LogType } from '@types';
-import { calculateOunceDifference, formatLbsToLbsOz, formatMinutesToHoursAndMinutes } from '@utils';
+import { formatLbsToLbsOz, formatMinutesToHoursAndMinutes } from '@utils';
+
+import { calculateDailyBottleFeedingState, calculateDailyBreastFeedingState, calculateDailyChangingState, calculateDailyPumpingState } from '../utils';
 
 type Change = {
   difference: number; // absolute value of change (positive number)
@@ -14,10 +17,11 @@ type Change = {
 };
 
 type HighlightsProps = {
+  isDailySnapshot: boolean;
   logs: LogEntry[];
 }
 
-export const Highlights = ({ logs }: HighlightsProps) => {
+export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   // calculated state
   const [breastFeedings, setBreastFeedings] = useState<number>(); // number of breast feeding sessions in time period
@@ -29,67 +33,43 @@ export const Highlights = ({ logs }: HighlightsProps) => {
   const [pumpSessions, setPumpSessions] = useState<number>(); // number of pump sessions in time period
   const [pumpTime, setPumpTime] = useState<number>(); // time spent pumping in time period shown in hours and minutes
   const [supplementations, setSupplementations] = useState<number>(); // total number of bottles given in time period
+  const [totalDiapers, setTotalDiapers] = useState<number>(); // total number of diapers in time period
   const [weightChange, setWeightChange] = useState<string>(); // difference in first and last weight in time period
   const [wetDiapers, setWetDiapers] = useState<number>(); // total number of wet diapers in time period
 
   const calculateBreastFeedingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.BREAST_FEEDING) as BreastFeeding[];
-    setBreastFeedings(filteredLogs.length);
-    let timeSpentBreastFeeding = 0;
-    let totalOuncesTransferred = 0;
-    filteredLogs.forEach((log) => {
-      const { duration, endPounds, endOunces, startPounds, startOunces } = log;
-      timeSpentBreastFeeding += duration;
-      const showWeightChange = [startPounds, startOunces, endPounds, endOunces].every((value) => value != null);
-      if (showWeightChange) {
-        totalOuncesTransferred += calculateOunceDifference(startPounds!, startOunces!, endPounds!, endOunces!);
-      }
-    });
-    setBreastFeedingDuration(timeSpentBreastFeeding);
-    setOuncesTransferred(totalOuncesTransferred);
+    const { duration, ounces, total } = calculateDailyBreastFeedingState(filteredLogs);
+    const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
+    setBreastFeedings(Math.round((total / totalDays) * 100) / 100);
+    setBreastFeedingDuration(duration / totalDays);
+    setOuncesTransferred(Math.round((ounces / totalDays) * 100) / 100);
   };
 
   const calculateBottleFeedingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.BOTTLE_FEEDING) as BottleFeeding[];
-    setSupplementations(filteredLogs.length);
-    let supplementedOunces = 0;
-    filteredLogs.forEach((log) => {
-      const { amount } = log;
-      supplementedOunces += amount;
-    });
-    setOuncesSupplemented(supplementedOunces);
+    const { ounces, total } = calculateDailyBottleFeedingState(filteredLogs);
+    const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
+    setSupplementations(Math.round((total / totalDays) * 100) / 100);
+    setOuncesSupplemented(Math.round((ounces / totalDays) * 100) / 100);
   };
 
   const calculatePumpingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.PUMPING) as Pumping[];
-    setPumpSessions(filteredLogs.length);
-    let pumpedOunces = 0;
-    let timeSpentPumping = 0;
-    filteredLogs.forEach((log) => {
-      const { duration, leftAmount, rightAmount } = log;
-      pumpedOunces += (leftAmount + rightAmount);
-      timeSpentPumping += duration;
-    });
-    const roundedOunces = Math.ceil(pumpedOunces * 10) / 10;
-    setOuncesPumped(roundedOunces);
-    setPumpTime(timeSpentPumping)
+    const { ounces, time, total } = calculateDailyPumpingState(filteredLogs);
+    const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
+    setPumpSessions(Math.round((total / totalDays) * 100) / 100);
+    setOuncesPumped(Math.round((ounces / totalDays) * 100) / 100);
+    setPumpTime(Math.round((time / totalDays) * 100) / 100)
   };
 
   const calculateChangingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.CHANGING) as Changing[];
-    let dirtyCount = 0;
-    let wetCount = 0;
-    filteredLogs.forEach((log) => {
-      const { type } = log;
-      if (type === WasteType.BOTH || type === WasteType.DIRTY) {
-        dirtyCount += 1;
-      }
-      if (type === WasteType.BOTH || type === WasteType.WET) {
-        wetCount += 1;
-      }
-    });
-    setDirtyDiapers(dirtyCount);
-    setWetDiapers(wetCount);
+    const { dirty, total, wet } = calculateDailyChangingState(filteredLogs);
+    const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
+    setDirtyDiapers(Math.round((dirty / totalDays) * 100) / 100);
+    setTotalDiapers(Math.round((total / totalDays) * 100) / 100);
+    setWetDiapers(Math.round((wet / totalDays) * 100) / 100);
   };
 
   const determineDifference = (start: number, end: number): Change => {
@@ -137,22 +117,23 @@ export const Highlights = ({ logs }: HighlightsProps) => {
       <AccordionDetails>
         <Typography>Breast Feeding</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field='Total Breast Feedings' value={breastFeedings} />
-        <LogRow field='Time Spent Breast Feeding' value={formatMinutesToHoursAndMinutes(breastFeedingDuration || 0)} />
-        <LogRow field='Ounces Transferred' value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
+        <LogRow field='Total (Average)' value={breastFeedings} />
+        <LogRow field='Time (Average)' value={formatMinutesToHoursAndMinutes(breastFeedingDuration || 0)} />
+        <LogRow field='Ounces Transferred (Average)' value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
         <Typography sx={{ pt: 1 }}>Supplementations</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field='Total Supplementation Feedings' value={supplementations} />
-        <LogRow field='Ounces Supplemented' value={`${ouncesSupplemented || 0} ounce(s)`} />
+        <LogRow field='Total (Average)' value={supplementations} />
+        <LogRow field='Ounces Supplemented (Average)' value={`${ouncesSupplemented || 0} ounce(s)`} />
         <Typography sx={{ pt: 1 }}>Pumping</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field='Total Pump Sessions' value={pumpSessions} />
-        <LogRow field='Time Spent Pumping' value={formatMinutesToHoursAndMinutes(pumpTime || 0)} />
-        <LogRow field='Ounces Pumped' value={`${ouncesPumped || 0} ounce(s)`} />
+        <LogRow field='Total (Average)' value={pumpSessions} />
+        <LogRow field='Time (Average)' value={formatMinutesToHoursAndMinutes(pumpTime || 0)} />
+        <LogRow field='Ounces Pumped (Average)' value={`${ouncesPumped || 0} ounce(s)`} />
         <Typography sx={{ pt: 1 }}>Changing</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field='Dirty Diapers' value={dirtyDiapers} />
-        <LogRow field='Wet Diapers' value={wetDiapers} />
+        <LogRow field='Dirty Diapers (Average)' value={dirtyDiapers} />
+        <LogRow field='Wet Diapers (Average)' value={wetDiapers} />
+        <LogRow field='Total (Average)' value={totalDiapers} />
         <Typography sx={{ pt: 1 }}>Growth</Typography>
         <Divider sx={{ borderColor: 'white', my: 1 }} />
         <LogRow field='Weight Change' value={weightChange || 'N/A'} />

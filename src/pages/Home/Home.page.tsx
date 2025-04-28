@@ -105,7 +105,7 @@ export const HomePage = () => {
         <Divider sx={{ borderColor: 'white' }} />
       </x.div>
       <x.div margin='15px'>
-        <Highlights logs={getCombinedLogs()} />
+        <Highlights isDailySnapshot={isDailySnapshot} logs={getCombinedLogs()} />
       </x.div>
       {getLogs()}
     </>
