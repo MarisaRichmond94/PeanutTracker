@@ -38,9 +38,9 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   const [reaction, setReaction] = useState<string | undefined>();
   const [reactionErrorText, setReactionErrorText] = useState<string | undefined>();
   // pumping only
-  const [duration, setDuration] = useState<number>(0);
-  const [leftAmount, setLeftAmount] = useState<number>(0);
-  const [rightAmount, setRightAmount] = useState<number>(0);
+  const [duration, setDuration] = useState<number | undefined>();
+  const [leftAmount, setLeftAmount] = useState<number | undefined>();
+  const [rightAmount, setRightAmount] = useState<number | undefined>();
   // shared state
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   const [method, setMethod] = useState<FeedingMethod>(FeedingMethod.BREAST);
@@ -57,16 +57,16 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   const clearState = () => {
     setAmount(undefined);
     setBottleType(BottleType.BREAST_MILK);
-    setDuration(0);
+    setDuration(undefined);
     setEndTime(dayjs());
     setEndPounds(null);
     setEndOunces(null);
     setFood(undefined);
-    setLeftAmount(0);
+    setLeftAmount(undefined);
     setMethod(FeedingMethod.BREAST);
     setNotes(null);
     setReaction(undefined);
-    setRightAmount(0);
+    setRightAmount(undefined);
     setSide(FeedingSide.BOTH);
     setStartTime(dayjs());
     setStartPounds(null);
@@ -123,7 +123,14 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
         await createNewFeeding({ food, method, notes, reaction, timestamp: startTime.toISOString() });
         break;
       case FeedingMethod.PUMP:
-        await createNewPumping({ duration, leftAmount, method, notes, rightAmount, timestamp: startTime.toISOString() });
+        await createNewPumping({
+          duration: duration || 0,
+          leftAmount: leftAmount || 0,
+          method,
+          notes,
+          rightAmount: rightAmount || 0,
+          timestamp: startTime.toISOString(),
+        });
         break;
     }
 
