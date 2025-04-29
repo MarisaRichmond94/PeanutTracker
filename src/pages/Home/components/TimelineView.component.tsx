@@ -60,9 +60,9 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
         );
       case LogType.CHANGING:
         const { type: changingType } = log as Changing & BaseLog;
-        const formattedType = changingType === WasteType.BOTH ? 'Wet And Dirty' : changingType;
+        const formattedType = changingType === WasteType.BOTH ? 'wet and dirty' : changingType.toLowerCase();
         return (
-          <h3 className='vertical-timeline-element-title'>{toCapitalCase(`Changed ${formattedType} Diaper`)}</h3>
+          <h3 className='vertical-timeline-element-title'>{`Changed ${formattedType} diaper`}</h3>
         );
       case LogType.FEEDING:
         const { food, reaction } = log as Feeding & BaseLog;
@@ -96,7 +96,7 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
         const { duration: pumpDuration, leftAmount, rightAmount } = log as Pumping & BaseLog;
         return (
           <h3 className='vertical-timeline-element-title'>
-            {`Pumped ${leftAmount + rightAmount} ounce(s) in ${pumpDuration} minute(s)`}
+            {`Pumped ${Math.round((leftAmount + rightAmount) * 100) / 100} ounce(s) in ${pumpDuration} minute(s)`}
           </h3>
         );
       case LogType.SLEEP:
