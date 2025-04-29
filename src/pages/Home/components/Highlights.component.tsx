@@ -1,15 +1,21 @@
 import { ExpandMoreRounded } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, Divider, Typography } from '@mui/material';
+import AirlineSeatFlatRoundedIcon from '@mui/icons-material/AirlineSeatFlatRounded';
+import BabyChangingStationRoundedIcon from '@mui/icons-material/BabyChangingStationRounded';
+import GrassRoundedIcon from '@mui/icons-material/GrassRounded';
+import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
+import SanitizerRoundedIcon from '@mui/icons-material/SanitizerRounded';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, Tab, Tabs, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
 import { LogRow } from '@components';
-import { BottleFeeding, BreastFeeding, Changing, Growth, Pumping } from '@models';
+import { useProfile } from '@contexts';
+import { BottleFeeding, BreastFeeding, Changing, Growth, Pumping, Sleep } from '@models';
 import { LogEntry, LogType } from '@types';
 import { formatLbsToLbsOz, formatMinutesToHoursAndMinutes } from '@utils';
 
-import { calculateDailyBottleFeedingState, calculateDailyBreastFeedingState, calculateDailyChangingState, calculateDailyPumpingState } from '../utils';
+import { calculateDailyBottleFeedingState, calculateDailyBreastFeedingState, calculateDailyChangingState, calculateDailyPumpingState, calculateDailySleepState } from '../utils';
 
 type Change = {
   difference: number; // absolute value of change (positive number)
@@ -22,11 +28,15 @@ type HighlightsProps = {
 }
 
 export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
+  const { firstName } = useProfile();
+
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   // calculated state
+  const [babySleepTime, setBabySleepTime] = useState<number>(); // number of minutes spent sleeping
   const [breastFeedings, setBreastFeedings] = useState<number>(); // number of breast feeding sessions in time period
-  const [breastFeedingDuration, setBreastFeedingDuration] = useState<number>(); // time spent breast feeding in time period shown in hours and minutes
+  const [dadSleepTime, setDadSleepTime] = useState<number>(); // number of minutes spent sleeping
   const [dirtyDiapers, setDirtyDiapers] = useState<number>(); // total number of dirty diapers in time period
+  const [momSleepTime, setMomSleepTime] = useState<number>(); // number of minutes spent sleeping
   const [ouncesPumped, setOuncesPumped] = useState<number>(); // total milk pumped in time period shown in ounces
   const [ouncesSupplemented, setOuncesSupplemented] = useState<number>(); // ounces of formula or breast milk supplemented in time period
   const [ouncesTransferred, setOuncesTransferred] = useState<number>(); // ounces of breast milk transferred in time period
@@ -36,13 +46,17 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
   const [totalDiapers, setTotalDiapers] = useState<number>(); // total number of diapers in time period
   const [weightChange, setWeightChange] = useState<string>(); // difference in first and last weight in time period
   const [wetDiapers, setWetDiapers] = useState<number>(); // total number of wet diapers in time period
+  const [tab, setTab] = useState(0);
+
+  const handleTabChange = (_: React.SyntheticEvent, newTab: number) => {
+    setTab(newTab);
+  };
 
   const calculateBreastFeedingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.BREAST_FEEDING) as BreastFeeding[];
-    const { duration, ounces, total } = calculateDailyBreastFeedingState(filteredLogs);
+    const { ounces, total } = calculateDailyBreastFeedingState(filteredLogs);
     const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
     setBreastFeedings(Math.round((total / totalDays) * 100) / 100);
-    setBreastFeedingDuration(duration / totalDays);
     setOuncesTransferred(Math.round((ounces / totalDays) * 100) / 100);
   };
 
@@ -72,6 +86,14 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
     setWetDiapers(Math.round((wet / totalDays) * 100) / 100);
   };
 
+  const calculateSleepState = () => {
+    const filteredLogs = logs.filter((log) => log.logType === LogType.SLEEP) as Sleep[];
+    const { babySleepDuration, dadSleepDuration, momSleepDuration } = calculateDailySleepState(filteredLogs);
+    setBabySleepTime(babySleepDuration);
+    setDadSleepTime(dadSleepDuration);
+    setMomSleepTime(momSleepDuration);
+  };
+
   const determineDifference = (start: number, end: number): Change => {
     if (end > start) {
       return { difference: end - start, type: 'Gained' };
@@ -98,6 +120,7 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
     calculateBottleFeedingState();
     calculatePumpingState();
     calculateChangingState();
+    calculateSleepState();
     calculateGrowthState();
   };
 
@@ -115,34 +138,65 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
         <Divider sx={{ borderColor: 'white' }} />
       </AccordionSummary>
       <AccordionDetails>
-        <Typography>Breast Feedings</Typography>
-        <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field={`Total${isDailySnapshot ? '' : ' (Average)'}`} value={`${breastFeedings} feedings`} />
-        <LogRow field={`Time${isDailySnapshot ? '' : ' (Average)'}`} value={formatMinutesToHoursAndMinutes(breastFeedingDuration || 0)} />
-        <LogRow field={`Transferred${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
-        <Typography sx={{ pt: 1 }}>Supplementations</Typography>
-        <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field={`Total${isDailySnapshot ? '' : ' (Average)'}`} value={`${supplementations} supplementations`} />
-        <LogRow field={`Supplemented${isDailySnapshot ? '' : ' (Average)'}`} value={`${ouncesSupplemented || 0} ounce(s)`} />
-        <Typography sx={{ pt: 1 }}>Pump Sessions</Typography>
-        <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field={`Total${isDailySnapshot ? '' : ' (Average)'}`} value={`${pumpSessions} sessions`} />
-        <LogRow field={`Time${isDailySnapshot ? '' : ' (Average)'}`} value={formatMinutesToHoursAndMinutes(pumpTime || 0)} />
-        <LogRow field={`Pumped${isDailySnapshot ? '' : ' (Average)'}`} value={`${ouncesPumped || 0} ounce(s)`} />
-        <Typography sx={{ pt: 1 }}>Diaper Changes</Typography>
-        <Divider sx={{ borderColor: 'white', my: 1 }} />
-        <LogRow field={`Dirty${isDailySnapshot ? '' : ' (Average)'}`} value={`${dirtyDiapers} diapers`} />
-        <LogRow field={`Wet${isDailySnapshot ? '' : ' (Average)'}`} value={`${wetDiapers} diapers`} />
-        <LogRow field={`Total${isDailySnapshot ? '' : ' (Average)'}`} value={`${totalDiapers} diapers`} />
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={tab}
+            onChange={handleTabChange}
+            variant='scrollable'
+            scrollButtons
+            allowScrollButtonsMobile
+          >
+            <Tab icon={<LocalDiningRoundedIcon />} />
+            <Tab icon={<SanitizerRoundedIcon />} />
+            <Tab icon={<BabyChangingStationRoundedIcon />} />
+            <Tab icon={<AirlineSeatFlatRoundedIcon />} />
+            {!isDailySnapshot && <Tab icon={<GrassRoundedIcon />} />}
+          </Tabs>
+        </Box>
+        <HighlightTab value={tab} index={0}>
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Breast)`} value={`${breastFeedings} feedings`} />
+          <LogRow field={`Transferred${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Supp.)`} value={`${supplementations} supps`} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}Supplemented`} value={`${ouncesSupplemented || 0} ounce(s)`} />
+        </HighlightTab>
+        <HighlightTab value={tab} index={1}>
+          <LogRow field={isDailySnapshot ? 'Total' : 'Average'} value={`${pumpSessions} sessions`} />
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} Time`} value={formatMinutesToHoursAndMinutes(pumpTime || 0)} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}Pumped`} value={`${ouncesPumped || 0} ounce(s)`} />
+        </HighlightTab>
+        <HighlightTab value={tab} index={2}>
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} Dirty`} value={`${dirtyDiapers} diapers`} />
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} Wet`} value={`${wetDiapers} diapers`} />
+          <LogRow field={isDailySnapshot ? 'Total' : 'Average'} value={`${totalDiapers} diapers`} />
+        </HighlightTab>
+        <HighlightTab value={tab} index={3}>
+          <LogRow field={`${firstName}${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(babySleepTime) || babySleepTime === 0 ? 'N/A' : formatMinutesToHoursAndMinutes(babySleepTime)} />
+          <LogRow field={`Mom${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(momSleepTime) || momSleepTime === 0 ? 'N/A' : formatMinutesToHoursAndMinutes(momSleepTime || 0)} />
+          <LogRow field={`Dad${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(dadSleepTime) || dadSleepTime === 0 ? 'N/A' : formatMinutesToHoursAndMinutes(dadSleepTime || 0)} />
+        </HighlightTab>
         {
           !isDailySnapshot &&
-          <>
-            <Typography sx={{ pt: 1 }}>Growth</Typography>
-            <Divider sx={{ borderColor: 'white', my: 1 }} />
+          <HighlightTab value={tab} index={4}>
             <LogRow field={'Weight Change'} value={weightChange || 'N/A'} />
-          </>
+          </HighlightTab>
         }
       </AccordionDetails>
     </Accordion>
   );
 };
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+const HighlightTab = ({ children, value, index }: TabPanelProps) => (
+  <div
+    role='tabpanel'
+    hidden={value !== index}
+    id={`simple-tabpanel-${index}`}
+  >
+    {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+  </div>
+);

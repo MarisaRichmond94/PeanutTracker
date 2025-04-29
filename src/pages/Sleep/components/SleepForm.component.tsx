@@ -8,7 +8,7 @@ import { Form } from '@components';
 import { useProfile } from '@contexts';
 import { createNewSleep } from '@services';
 import { toCapitalCase } from '@utils';
-import { SleepLocation, SleepType } from '@models';
+import { SleepEntity, SleepLocation, SleepType } from '@models';
 
 type SleepFormProps = {
   onSuccess: () => void;
@@ -20,8 +20,9 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
   const [endTime, setEndTime] = useState<Dayjs>(dayjs().add(1, 'minute'));
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
-  const [location, setLocation] = useState<SleepLocation>(SleepLocation.CRIB);
+  const [location, setLocation] = useState<SleepLocation>(SleepLocation.CONTACT_NAP);
   const [notes, setNotes] = useState<string | null>(null);
+  const [sleeper, setSleeper] = useState<SleepEntity>(SleepEntity.BABY);
   const [startTime, setStartTime] = useState<Dayjs>(dayjs());
   const [type, setType] = useState<SleepType>(SleepType.NAP);
 
@@ -55,12 +56,13 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
     }
 
     await createNewSleep({
+      entity: sleeper,
       duration: endTime.diff(startTime, 'minute'),
       endTime: endTime.toISOString(),
-      location,
+      location: sleeper === SleepEntity.BABY ? location : null,
       notes,
       startTime: startTime.toISOString(),
-      type,
+      type: sleeper === SleepEntity.BABY ? type : null,
     });
 
     clearState();
@@ -79,42 +81,66 @@ export const SleepForm = ({ onSuccess }: SleepFormProps) => {
   const fields = (
     <>
       <FormControl fullWidth>
-        <InputLabel id='sleep-type-select-label'>Type</InputLabel>
+        <InputLabel id='sleep-entity-select-label'>Who is sleeping?</InputLabel>
         <Select
-          id='sleep-type-select'
-          label='Type'
-          labelId='sleep-type-select-label'
-          onChange={(event: SelectChangeEvent<SleepType>) => setType(event.target.value as SleepType)}
-          required
-          value={type}
+          labelId='sleep-entity-select-label'
+          id='sleep-entity-select'
+          value={sleeper}
+          label='Who is sleeping?'
+          onChange={(event: SelectChangeEvent<SleepEntity>) => setSleeper(event.target.value as SleepEntity)}
         >
           {
-            Object.values(SleepType).map((it, index) =>
-              <MenuItem key={`sleep-type-${index}`} value={it}>
-                {toCapitalCase(it)}
+            Object.values(SleepEntity).map((it, index) =>
+              <MenuItem key={`sleep-entity-${index}`} value={it}>
+                {it}
               </MenuItem>
             )
           }
         </Select>
       </FormControl>
-      <FormControl fullWidth>
-        <InputLabel id='sleep-location-select-label'>Location</InputLabel>
-        <Select
-          labelId='sleep-location-select-label'
-          id='sleep-location-select'
-          value={location}
-          label='Location'
-          onChange={(event: SelectChangeEvent<SleepLocation>) => setLocation(event.target.value as SleepLocation)}
-        >
-          {
-            Object.values(SleepLocation).map((it, index) =>
-              <MenuItem key={`sleep-location-${index}`} value={it}>
-                {toCapitalCase(it)}
-              </MenuItem>
-            )
-          }
-        </Select>
-      </FormControl>
+      {
+        sleeper === SleepEntity.BABY &&
+        <FormControl fullWidth>
+          <InputLabel id='sleep-type-select-label'>Type</InputLabel>
+          <Select
+            id='sleep-type-select'
+            label='Type'
+            labelId='sleep-type-select-label'
+            onChange={(event: SelectChangeEvent<SleepType>) => setType(event.target.value as SleepType)}
+            required
+            value={type}
+          >
+            {
+              Object.values(SleepType).map((it, index) =>
+                <MenuItem key={`sleep-type-${index}`} value={it}>
+                  {toCapitalCase(it)}
+                </MenuItem>
+              )
+            }
+          </Select>
+        </FormControl>
+      }
+      {
+        sleeper === SleepEntity.BABY &&
+        <FormControl fullWidth>
+          <InputLabel id='sleep-location-select-label'>Location</InputLabel>
+          <Select
+            labelId='sleep-location-select-label'
+            id='sleep-location-select'
+            value={location}
+            label='Location'
+            onChange={(event: SelectChangeEvent<SleepLocation>) => setLocation(event.target.value as SleepLocation)}
+          >
+            {
+              Object.values(SleepLocation).map((it, index) =>
+                <MenuItem key={`sleep-location-${index}`} value={it}>
+                  {toCapitalCase(it)}
+                </MenuItem>
+              )
+            }
+          </Select>
+        </FormControl>
+      }
       <MobileDateTimePicker
         label='Start Time'
         value={startTime}

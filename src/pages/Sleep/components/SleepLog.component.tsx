@@ -7,7 +7,7 @@ import { ChangeEvent, useState } from 'react';
 
 import { EditLogRow, Log, LogRow } from '@components';
 import { useProfile } from '@contexts';
-import { Sleep, SleepLocation, SleepType } from '@models';
+import { Sleep, SleepEntity, SleepLocation, SleepType } from '@models';
 import { deleteSleep, updateSleep } from '@services';
 import { formatDate, formatMinutesToHoursAndMinutes, toCapitalCase } from '@utils';
 
@@ -19,15 +19,16 @@ interface SleepLogProps {
 export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
   const { firstName } = useProfile();
 
-  const { id, endTime, duration, location, notes, startTime, type } = sleep;
+  const { id, endTime, entity, duration, location, notes, startTime, type } = sleep;
 
   const [isInEditMode, setIsInEditMode] = useState(false);
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
   const [updatedEndTime, setUpdatedEndTime] = useState<Dayjs>(dayjs(endTime));
-  const [updatedLocation, setUpdatedLocation] = useState<SleepLocation>(location);
+  const [updatedEntity, setUpdatedEntity] = useState<SleepEntity>(entity || SleepEntity.BABY);
+  const [updatedLocation, setUpdatedLocation] = useState<SleepLocation | null>(location || SleepLocation.CONTACT_NAP);
   const [updatedNotes, setUpdatedNotes] = useState<string | null>(notes);
   const [updatedStartTime, setUpdatedStartTime] = useState<Dayjs>(dayjs(startTime));
-  const [updatedType, setUpdatedType] = useState<SleepType>(type);
+  const [updatedType, setUpdatedType] = useState<SleepType | null>(type || SleepType.NAP);
 
   const clearErrors = () => {
     setDurationErrorText(undefined);
@@ -40,10 +41,11 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
 
   const onDiscard = () => {
     setUpdatedEndTime(dayjs(endTime));
-    setUpdatedLocation(location);
+    setUpdatedEntity(entity || SleepEntity.BABY);
+    setUpdatedLocation(location || SleepLocation.CONTACT_NAP);
     setUpdatedNotes(notes);
     setUpdatedStartTime(dayjs(startTime));
-    setUpdatedType(type);
+    setUpdatedType(type || SleepType.NAP);
     setIsInEditMode(false);
   };
 
@@ -59,12 +61,13 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
     }
 
     await updateSleep(idToUpdate, {
+      entity: updatedEntity,
       duration: updatedEndTime.diff(updatedStartTime, 'minute'),
       endTime: updatedEndTime.toISOString(),
-      location: updatedLocation,
+      location: updatedEntity === SleepEntity.BABY ? updatedLocation : null,
       notes: updatedNotes,
       startTime: updatedStartTime.toISOString(),
-      type: updatedType,
+      type: updatedEntity === SleepEntity.BABY ? updatedType : null,
     });
     await onSuccess();
     setIsInEditMode(false);
@@ -73,10 +76,11 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
   const getCardContent = () => (
     <CardContent>
       <x.div display='flex' flexDirection='column' gap='15px'>
+        <LogRow field='Sleeper' value={entity || SleepEntity.BABY} />
         <LogRow field='Date' value={formatDate(startTime)} />
         <LogRow field='Duration' value={formatMinutesToHoursAndMinutes(duration)} />
-        <LogRow field='Location' value={toCapitalCase(location)} />
-        <LogRow field='Type' value={toCapitalCase(type)} />
+        {!isNil(location) && <LogRow field='Location' value={toCapitalCase(location)} />}
+        {!isNil(type) && <LogRow field='Type' value={toCapitalCase(type)} />}
         {!isNil(notes) && <LogRow field='Notes' value={notes} />}
       </x.div>
     </CardContent>
@@ -86,6 +90,25 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
     <CardContent>
       <x.div display='flex' flexDirection='column' gap='15px'>
         <LogRow field='Date' value={formatDate(startTime)} />
+        <EditLogRow field='Sleeper' value={
+          <FormControl fullWidth>
+            <Select
+              className='skinny-select'
+              id='sleep-entity-select'
+              value={updatedEntity}
+              onChange={(event: SelectChangeEvent<SleepEntity>) => setUpdatedEntity(event.target.value as SleepEntity)}
+            >
+              {
+                Object.values(SleepEntity).map((it, index) =>
+                  <MenuItem key={`sleep-entity-${index}`} value={it}>
+                    {it}
+                  </MenuItem>
+                )
+              }
+            </Select>
+          </FormControl>
+          }
+        />
         <EditLogRow field='Start' value={
           <MobileDateTimePicker
             value={updatedStartTime}
@@ -112,44 +135,50 @@ export const SleepLog = ({ sleep, onSuccess }: SleepLogProps) => {
             }}
           />
         } />
-        <EditLogRow field='Location' value={
-          <FormControl fullWidth>
-            <Select
-              className='skinny-select'
-              labelId='sleep-location-select-label'
-              id='sleep-location-select'
-              value={updatedLocation}
-              onChange={(event: SelectChangeEvent<SleepLocation>) => setUpdatedLocation(event.target.value as SleepLocation)}
-            >
-              {
-                Object.values(SleepLocation).map((it, index) =>
-                  <MenuItem key={`sleep-location-${index}`} value={it}>
-                    {toCapitalCase(it)}
-                  </MenuItem>
-                )
-              }
-            </Select>
-          </FormControl>
-        } />
-        <EditLogRow field='Type' value={
-          <FormControl fullWidth>
-            <Select
-              className='skinny-select'
-              labelId='sleep-type-select-label'
-              id='sleep-type-select'
-              value={updatedType}
-              onChange={(event: SelectChangeEvent<SleepType>) => setUpdatedType(event.target.value as SleepType)}
-            >
-              {
-                Object.values(SleepType).map((it, index) =>
-                  <MenuItem key={`sleep-type-${index}`} value={it}>
-                    {toCapitalCase(it)}
-                  </MenuItem>
-                )
-              }
-            </Select>
-          </FormControl>
-        } />
+        {
+          updatedEntity === SleepEntity.BABY &&
+          <EditLogRow field='Location' value={
+            <FormControl fullWidth>
+              <Select
+                className='skinny-select'
+                labelId='sleep-location-select-label'
+                id='sleep-location-select'
+                value={updatedLocation!}
+                onChange={(event: SelectChangeEvent<SleepLocation>) => setUpdatedLocation(event.target.value as SleepLocation)}
+              >
+                {
+                  Object.values(SleepLocation).map((it, index) =>
+                    <MenuItem key={`sleep-location-${index}`} value={it}>
+                      {toCapitalCase(it)}
+                    </MenuItem>
+                  )
+                }
+              </Select>
+            </FormControl>
+          } />
+        }
+        {
+          updatedEntity === SleepEntity.BABY &&
+          <EditLogRow field='Type' value={
+            <FormControl fullWidth>
+              <Select
+                className='skinny-select'
+                labelId='sleep-type-select-label'
+                id='sleep-type-select'
+                value={updatedType!}
+                onChange={(event: SelectChangeEvent<SleepType>) => setUpdatedType(event.target.value as SleepType)}
+              >
+                {
+                  Object.values(SleepType).map((it, index) =>
+                    <MenuItem key={`sleep-type-${index}`} value={it}>
+                      {toCapitalCase(it)}
+                    </MenuItem>
+                  )
+                }
+              </Select>
+            </FormControl>
+          } />
+        }
         <EditLogRow field='Notes' value={
           <TextField
             className='skinny-text-field'

@@ -9,9 +9,9 @@ import SanitizerRoundedIcon from '@mui/icons-material/SanitizerRounded';
 import { isNil } from 'lodash';
 import { VerticalTimeline, VerticalTimelineElement }  from 'react-vertical-timeline-component';
 
-import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Pumping, Sleep, SleepLocation, SleepType, WasteType } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Pumping, Sleep, SleepEntity, SleepLocation, SleepType, WasteType } from '@models';
 import { BaseLog, LogEntry, LogType } from '@types';
-import { calculateOunceDifference, formatMinutesToHoursAndMinutes, toCapitalCase } from '@utils';
+import { calculateOunceDifference, formatMinutesToHoursAndMinutes } from '@utils';
 
 type TimelineViewProps = {
   logs: LogEntry[];
@@ -100,11 +100,11 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
           </h3>
         );
       case LogType.SLEEP:
-        const { duration: sleepDuration, location, type: sleepType } = log as Sleep & BaseLog;
-        const sleepAction = sleepType === SleepType.NAP ? 'Napped' : 'Slept';
+        const { entity: sleeper, duration: sleepDuration, location, type: sleepType } = log as Sleep & BaseLog;
+        const sleepAction = sleepType === SleepType.NAP ? 'napped' : 'slept';
         return (
           <h3 className='vertical-timeline-element-title'>
-            {`${location === SleepLocation.CONTACT_NAP ? 'Contact Napped' : toCapitalCase(`${sleepAction} in ${location}`)} for ${formatMinutesToHoursAndMinutes(sleepDuration)}`}
+            {`${sleeper} ${location === SleepLocation.CONTACT_NAP ? 'contact napped' : sleepAction}${sleeper === SleepEntity.BABY && location !== SleepLocation.CONTACT_NAP ? ` in ${location}` : ''} for ${formatMinutesToHoursAndMinutes(sleepDuration)}`}
           </h3>
         );
     }

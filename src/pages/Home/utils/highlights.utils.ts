@@ -1,7 +1,7 @@
-import { BottleFeeding, BreastFeeding, Changing, Pumping, WasteType } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Pumping, Sleep, SleepEntity, WasteType } from '@models';
 import { calculateOunceDifference } from '@utils';
 
-import { DailyBottleFeedingState, DailyBreastFeedingState, DailyChangingState, DailyPumpingState } from '../types';
+import { DailyBottleFeedingState, DailyBreastFeedingState, DailyChangingState, DailyPumpingState, DailySleepState } from '../types';
 
 export const calculateDailyBreastFeedingState = (dailyLogs: BreastFeeding[]): DailyBreastFeedingState => {
   let duration = 0;
@@ -68,5 +68,32 @@ export const calculateDailyPumpingState = (dailyLogs: Pumping[]): DailyPumpingSt
     ounces: Math.ceil(ounces * 10) / 10,
     time,
     total: dailyLogs.length,
+  };
+};
+
+export const calculateDailySleepState = (dailyLogs: Sleep[]): DailySleepState => {
+  let babySleepDuration = 0;
+  let dadSleepDuration = 0;
+  let momSleepDuration = 0;
+
+  dailyLogs.forEach((log) => {
+    const { entity, duration } = log;
+    switch (entity) {
+      case SleepEntity.BABY:
+        babySleepDuration += duration;
+        break;
+      case SleepEntity.DAD:
+        dadSleepDuration += duration;
+        break;
+      case SleepEntity.MOM:
+        momSleepDuration += duration;
+        break;
+    }
+  });
+
+  return {
+    babySleepDuration,
+    dadSleepDuration,
+    momSleepDuration,
   };
 };

@@ -25,3 +25,9 @@ export type DailyPumpingState = {
   time: number;
   total: number;
 }
+
+export type DailySleepState = {
+  babySleepDuration: number;
+  dadSleepDuration: number;
+  momSleepDuration: number;
+}
