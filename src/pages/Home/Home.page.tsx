@@ -15,7 +15,7 @@ import { getBottleFeedingsInRange, getBreastFeedingsInRange, getChangingsInRange
 import { LogEntry, LogType } from '@types';
 import { getTimeOnly } from '@utils';
 
-import { Highlights, TimelineView } from './components';
+import { Highlights, QuickActions, TimelineView } from './components';
 
 export const HomePage = () => {
   const [bottleFeedings, setBottleFeedings] = useState<BottleFeeding[] | undefined>();
@@ -38,7 +38,7 @@ export const HomePage = () => {
     const feedings =  await getFeedingsInRange(start, end);
     const growths =  await getGrowthsInRange(start, end);
     const pumpings = await getPumpingsInRange(start, end);
-    const sleeps = await  await getSleepsInRange(start, end);
+    const sleeps = await getSleepsInRange(start, end);
     setBottleFeedings(bottleFeedings);
     setBreastFeedings(breastFeedings);
     setChangings(changings);
@@ -104,8 +104,9 @@ export const HomePage = () => {
         </x.div>
         <Divider sx={{ borderColor: 'white' }} />
       </x.div>
-      <x.div margin='15px'>
+      <x.div display='flex' flexDirection='column' gap='15px' pb='15px'>
         <Highlights isDailySnapshot={isDailySnapshot} logs={getCombinedLogs()} />
+        <QuickActions />
       </x.div>
       {getLogs()}
     </>

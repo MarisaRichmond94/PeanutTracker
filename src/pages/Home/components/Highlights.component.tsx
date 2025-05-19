@@ -131,8 +131,8 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
     <Accordion expanded={isFormExpanded} onChange={() => setIsFormExpanded(!isFormExpanded)}>
       <AccordionSummary
         expandIcon={<ExpandMoreRounded />}
-        aria-controls='growth-form-content'
-        id='growth-form-header'
+        aria-controls='highlights-content'
+        id='highlights-header'
       >
         <Typography sx={{ m: 0, p: 0 }} variant='h6'>Highlights</Typography>
         <Divider sx={{ borderColor: 'white' }} />
@@ -158,6 +158,7 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
           <LogRow field={`Transferred${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
           <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Supp.)`} value={`${supplementations} supps`} />
           <LogRow field={`${isDailySnapshot ? '' : 'Average '}Supplemented`} value={`${ouncesSupplemented || 0} ounce(s)`} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}Consumed`} value={`${(ouncesSupplemented || 0) + (ouncesTransferred || 0)} ounce(s)`} />
         </HighlightTab>
         <HighlightTab value={tab} index={1}>
           <LogRow field={isDailySnapshot ? 'Total' : 'Average'} value={`${pumpSessions} sessions`} />
@@ -177,7 +178,7 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
         {
           !isDailySnapshot &&
           <HighlightTab value={tab} index={4}>
-            <LogRow field={'Weight Change'} value={weightChange || 'N/A'} />
+            <LogRow field='Weight Change' value={weightChange || 'N/A'} />
           </HighlightTab>
         }
       </AccordionDetails>
