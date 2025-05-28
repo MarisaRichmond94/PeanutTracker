@@ -11,7 +11,12 @@ export type DailyBreastFeedingState = {
 
 export type DailyBottleFeedingState = {
   total: number;
-  ounces: number;
+  ouncesConsumed: number;
+  ouncesGiven: number;
+  ouncesBreastMilkConsumed: number;
+  ouncesBreastMilkGiven: number;
+  ouncesFormulaConsumed: number;
+  ouncesFormulaGiven: number;
 }
 
 export type DailyChangingState = {

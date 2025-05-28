@@ -24,8 +24,10 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   const { id, method, notes, timestamp } = feeding;
 
   // bottlefeeding only
-  const [updatedAmount, setUpdatedAmount] = useState<number | undefined>();
-  const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
+  const [updatedAmountConsumed, setUpdatedAmountConsumed] = useState<number | undefined>();
+  const [updatedAmountGiven, setUpdatedAmountGiven] = useState<number | null>(null);
+  const [amountConsumedErrorText, setAmountConsumedErrorText] = useState<string | undefined>();
+  const [amountGivenErrorText, setAmountGivenErrorText] = useState<string | undefined>();
   const [updatedBottleType, setUpdatedBottleType] = useState<BottleType>(BottleType.BREAST_MILK);
   // breastfeeding only
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
@@ -63,8 +65,9 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
 
     switch (method) {
       case FeedingMethod.BOTTLE:
-        const { amount, type } = feeding as BottleFeeding;
-        setUpdatedAmount(amount);
+        const { amount, amountGiven, type } = feeding as BottleFeeding;
+        setUpdatedAmountConsumed(amount);
+        setUpdatedAmountGiven(amountGiven);
         setUpdatedBottleType(type);
         break;
       case FeedingMethod.BREAST:
@@ -97,7 +100,8 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
   useEffect(() => { resetUniqueState(); }, [isInEditMode]);
 
   const clearErrors = () => {
-    setAmountErrorText(undefined);
+    setAmountConsumedErrorText(undefined);
+    setAmountGivenErrorText(undefined);
     setDurationErrorText(undefined);
     setFoodErrorText(undefined);
     setReactionErrorText(undefined);
@@ -132,13 +136,17 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
 
     switch (method) {
       case FeedingMethod.BOTTLE:
-        if (isNil(updatedAmount) || updatedAmount <= 0) {
-          setAmountErrorText('Missing required amount');
+        if (isNil(updatedAmountConsumed) || updatedAmountConsumed < 0) {
+          setAmountConsumedErrorText('Missing required amount');
+          return;
+        }
+        if (!isNil(updatedAmountGiven) && updatedAmountGiven < 0) {
+          setAmountGivenErrorText('Invalid amount given');
           return;
         }
         await updateBottleFeeding(
           idToUpdate,
-          { amount: updatedAmount, notes: updatedNotes, timestamp: updatedStartTime.toISOString(), type: updatedBottleType },
+          { amount: updatedAmountConsumed, amountGiven: updatedAmountGiven, notes: updatedNotes, timestamp: updatedStartTime.toISOString(), type: updatedBottleType },
         );
         break;
       case FeedingMethod.BREAST:
@@ -176,18 +184,24 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
     setIsInEditMode(false);
   };
 
-  const updateAmount = (event: ChangeEvent<HTMLInputElement>) => {
-    setAmountErrorText(undefined);
-    setUpdatedAmount(Number(event.target.value))
+  const updateAmountConsumed = (event: ChangeEvent<HTMLInputElement>) => {
+    setAmountConsumedErrorText(undefined);
+    setUpdatedAmountConsumed(Number(event.target.value))
+  };
+
+  const updateAmountGiven = (event: ChangeEvent<HTMLInputElement>) => {
+    setAmountGivenErrorText(undefined);
+    setUpdatedAmountGiven(Number(event.target.value))
   };
 
   const getContentFields = () => {
     switch (method) {
       case FeedingMethod.BOTTLE:
-        const { amount, type } = feeding as BottleFeeding;
+        const { amount, amountGiven, type } = feeding as BottleFeeding;
         return (
           <>
-            <LogRow field='Amount' value={`${amount} ounce(s)`} />
+            {!isNil(amountGiven) && <LogRow field='Given' value={`${amountGiven} ounce(s)`} />}
+            <LogRow field='Consumed' value={`${amount} ounce(s)`} />
             <LogRow field='Type' value={type} />
           </>
         );
@@ -247,13 +261,30 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
         return (
           <>
             {editableStartTimeField}
-            <EditLogRow field='Amount' value={
+            <EditLogRow field='Given' value={
               <TextField
                 className='skinny-text-field'
-                error={!isNil(amountErrorText)}
-                helperText={amountErrorText}
+                error={!isNil(amountGivenErrorText)}
+                helperText={amountGivenErrorText}
+                id='feeding-amount-given-field'
+                onChange={updateAmountGiven}
+                placeholder={`How much was ${firstName} given?`}
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                type='number'
+                value={updatedAmountGiven}
+              />
+            } />
+            <EditLogRow field='Consumed' value={
+              <TextField
+                className='skinny-text-field'
+                error={!isNil(amountConsumedErrorText)}
+                helperText={amountConsumedErrorText}
                 id='feeding-amount-field'
-                onChange={updateAmount}
+                onChange={updateAmountConsumed}
                 placeholder={`How much did ${firstName} drink?`}
                 slotProps={{
                   inputLabel: {
@@ -261,7 +292,7 @@ export const FeedingLog = ({ feeding, onSuccess }: FeedingLogProps) => {
                   },
                 }}
                 type='number'
-                value={updatedAmount}
+                value={updatedAmountConsumed}
               />
             } />
             <EditLogRow field='Type' value={

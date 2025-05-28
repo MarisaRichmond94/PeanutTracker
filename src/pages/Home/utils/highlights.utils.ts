@@ -1,4 +1,4 @@
-import { BottleFeeding, BreastFeeding, Changing, Pumping, Sleep, SleepEntity, WasteType } from '@models';
+import { BottleFeeding, BottleType, BreastFeeding, Changing, Pumping, Sleep, SleepEntity, WasteType } from '@models';
 import { calculateOunceDifference } from '@utils';
 
 import { DailyBottleFeedingState, DailyBreastFeedingState, DailyChangingState, DailyPumpingState, DailySleepState } from '../types';
@@ -23,15 +23,38 @@ export const calculateDailyBreastFeedingState = (dailyLogs: BreastFeeding[]): Da
 };
 
 export const calculateDailyBottleFeedingState = (dailyLogs: BottleFeeding[]): DailyBottleFeedingState => {
-  let ounces = 0;
+  let ouncesConsumed = 0;
+  let ouncesGiven = 0;
+  let ouncesBreastMilkConsumed = 0;
+  let ouncesBreastMilkGiven = 0;
+  let ouncesFormulaConsumed = 0;
+  let ouncesFormulaGiven = 0;
+
   dailyLogs.forEach((log) => {
-    const { amount } = log;
-    ounces += amount;
+    const { amount, amountGiven, type } = log;
+    ouncesConsumed += amount;
+    ouncesGiven += (amountGiven || amount);
+
+    switch (type) {
+      case BottleType.BREAST_MILK:
+        ouncesBreastMilkConsumed += amount;
+        ouncesBreastMilkGiven += (amountGiven || amount);
+        break;
+      case BottleType.FORMULA:
+        ouncesFormulaConsumed += amount;
+        ouncesFormulaGiven += (amountGiven || amount);
+        break;
+    }
   });
 
   return {
     total: dailyLogs.length,
-    ounces,
+    ouncesConsumed,
+    ouncesGiven,
+    ouncesBreastMilkConsumed,
+    ouncesBreastMilkGiven,
+    ouncesFormulaConsumed,
+    ouncesFormulaGiven
   };
 };
 

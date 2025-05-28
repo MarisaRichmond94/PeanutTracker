@@ -40,10 +40,10 @@ export const TimelineView = ({ logs }: TimelineViewProps) => {
 
     switch (log.logType) {
       case LogType.BOTTLE_FEEDING:
-        const { amount, type } = log as BottleFeeding & BaseLog;
+        const { amount, amountGiven, type } = log as BottleFeeding & BaseLog;
         return (
           <h3 className='vertical-timeline-element-title'>
-            {`Supplemented with ${amount} ounce(s) of ${type}`}
+            {`Supplemented with ${amountGiven || amount} ounce(s) of ${type}${!isNil(amountGiven) ? ` - ${amount} ounce(s) of ${amountGiven} consumed` : ''}`}
           </h3>
         );
       case LogType.BREAST_FEEDING:

@@ -47,6 +47,7 @@ export const ChangingLog = ({ changing, onSuccess }: ChangingLogProps) => {
       color: updatedColor,
       consistency: updatedConsistency,
       notes: updatedNotes,
+      timestamp: updatedTimestamp.toISOString(),
       type: updatedType,
     });
     await onSuccess();

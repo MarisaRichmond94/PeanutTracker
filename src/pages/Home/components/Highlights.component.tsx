@@ -17,6 +17,8 @@ import { formatLbsToLbsOz, formatMinutesToHoursAndMinutes } from '@utils';
 
 import { calculateDailyBottleFeedingState, calculateDailyBreastFeedingState, calculateDailyChangingState, calculateDailyPumpingState, calculateDailySleepState } from '../utils';
 
+const TARGET_SUPPLEMENT_AMOUNT = 24;
+
 type Change = {
   difference: number; // absolute value of change (positive number)
   type: 'Gained' | 'Lost' | 'N/A';
@@ -37,11 +39,16 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
   const [dadSleepTime, setDadSleepTime] = useState<number>(); // number of minutes spent sleeping
   const [dirtyDiapers, setDirtyDiapers] = useState<number>(); // total number of dirty diapers in time period
   const [momSleepTime, setMomSleepTime] = useState<number>(); // number of minutes spent sleeping
+  const [ouncesBreastMilkConsumed, setOuncesBreastMilkConsumed] = useState<number>();
+  const [ouncesBreastMilkGiven, setOuncesBreastMilkGiven] = useState<number>();
+  const [ouncesFormulaConsumed, setOuncesFormulaConsumed] = useState<number>();
+  const [ouncesFormulaGiven, setOuncesFormulaGiven] = useState<number>();
   const [ouncesPumped, setOuncesPumped] = useState<number>(); // total milk pumped in time period shown in ounces
   const [ouncesSupplemented, setOuncesSupplemented] = useState<number>(); // ounces of formula or breast milk supplemented in time period
-  const [ouncesTransferred, setOuncesTransferred] = useState<number>(); // ounces of breast milk transferred in time period
+  const [totalSupplementedOuncesGiven, setTotalSupplementedOuncesGiven] = useState<number>(); // ounces of formula or breast milk attempted to supplement in time period (regardless of consumption)
+  // const [ouncesTransferred, setOuncesTransferred] = useState<number>(); // ounces of breast milk transferred in time period
   const [pumpSessions, setPumpSessions] = useState<number>(); // number of pump sessions in time period
-  const [pumpTime, setPumpTime] = useState<number>(); // time spent pumping in time period shown in hours and minutes
+  // const [pumpTime, setPumpTime] = useState<number>(); // time spent pumping in time period shown in hours and minutes
   const [supplementations, setSupplementations] = useState<number>(); // total number of bottles given in time period
   const [totalDiapers, setTotalDiapers] = useState<number>(); // total number of diapers in time period
   const [weightChange, setWeightChange] = useState<string>(); // difference in first and last weight in time period
@@ -54,27 +61,30 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
 
   const calculateBreastFeedingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.BREAST_FEEDING) as BreastFeeding[];
-    const { ounces, total } = calculateDailyBreastFeedingState(filteredLogs);
+    const { total } = calculateDailyBreastFeedingState(filteredLogs);
     const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
     setBreastFeedings(Math.round((total / totalDays) * 100) / 100);
-    setOuncesTransferred(Math.round((ounces / totalDays) * 100) / 100);
   };
 
   const calculateBottleFeedingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.BOTTLE_FEEDING) as BottleFeeding[];
-    const { ounces, total } = calculateDailyBottleFeedingState(filteredLogs);
+    const { ouncesConsumed, ouncesGiven, total, ouncesBreastMilkConsumed: breastMilkConsumed, ouncesBreastMilkGiven: breastMilkGiven, ouncesFormulaConsumed: formulaConsumed, ouncesFormulaGiven: formulaGiven } = calculateDailyBottleFeedingState(filteredLogs);
     const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
     setSupplementations(Math.round((total / totalDays) * 100) / 100);
-    setOuncesSupplemented(Math.round((ounces / totalDays) * 100) / 100);
+    setOuncesSupplemented(Math.round((ouncesConsumed / totalDays) * 100) / 100);
+    setOuncesBreastMilkConsumed(breastMilkConsumed);
+    setOuncesBreastMilkGiven(breastMilkGiven);
+    setOuncesFormulaConsumed(formulaConsumed);
+    setOuncesFormulaGiven(formulaGiven);
+    setTotalSupplementedOuncesGiven(Math.round((ouncesGiven / totalDays) * 100) / 100);
   };
 
   const calculatePumpingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.PUMPING) as Pumping[];
-    const { ounces, time, total } = calculateDailyPumpingState(filteredLogs);
+    const { ounces, total } = calculateDailyPumpingState(filteredLogs);
     const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
     setPumpSessions(Math.round((total / totalDays) * 100) / 100);
     setOuncesPumped(Math.round((ounces / totalDays) * 100) / 100);
-    setPumpTime(Math.round((time / totalDays) * 100) / 100)
   };
 
   const calculateChangingState = () => {
@@ -154,16 +164,26 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
           </Tabs>
         </Box>
         <HighlightTab value={tab} index={0}>
-          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Breast)`} value={`${breastFeedings} feedings`} />
-          <LogRow field={`Transferred${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
-          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Supp.)`} value={`${supplementations} supps`} />
-          <LogRow field={`${isDailySnapshot ? '' : 'Average '}Supplemented`} value={`${ouncesSupplemented || 0} ounce(s)`} />
-          <LogRow field={`${isDailySnapshot ? '' : 'Average '}Consumed`} value={`${(ouncesSupplemented || 0) + (ouncesTransferred || 0)} ounce(s)`} />
+          {/* <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Breast)`} value={`${breastFeedings} feedings`} /> */}
+          {/* <LogRow field={`Transferred${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} /> */}
+          <LogRow field={isDailySnapshot ? 'Total' : 'Average'} value={`${supplementations} supplement(s)`} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}Consumed`} value={`${ouncesSupplemented || 0} ounce(s)`} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}Given`} value={`${totalSupplementedOuncesGiven} ounce(s)`} />
+          {isDailySnapshot && <LogRow field='Remaining' value={`${TARGET_SUPPLEMENT_AMOUNT - (totalSupplementedOuncesGiven || 0)} ounce(s)`} />}
+          {isDailySnapshot && <LogRow field='% of Target Supp' value={`${Math.round((Math.round((((totalSupplementedOuncesGiven || 0) / TARGET_SUPPLEMENT_AMOUNT) * 100)) / 100) * 100)}%`} />}
+          <LogRow field='% of Supp(s) Consumed' value={`${Math.round((Math.round((((ouncesSupplemented || 0) / (totalSupplementedOuncesGiven || 0)) * 100)) / 100) * 100)}%`} />
+          {/* <LogRow field={`${isDailySnapshot ? '' : 'Average '}Consumed`} value={`${(ouncesSupplemented || 0) + (ouncesTransferred || 0)} ounce(s)`} /> */}
         </HighlightTab>
         <HighlightTab value={tab} index={1}>
-          <LogRow field={isDailySnapshot ? 'Total' : 'Average'} value={`${pumpSessions} sessions`} />
-          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} Time`} value={formatMinutesToHoursAndMinutes(pumpTime || 0)} />
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Pump)`} value={`${pumpSessions} session(s)`} />
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Breast)`} value={`${breastFeedings} session(s)`} />
+          <LogRow field='Combined' value={`${(breastFeedings || 0) + (pumpSessions || 0)} session(s)`} />
+          {/* <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} Time`} value={formatMinutesToHoursAndMinutes(pumpTime || 0)} /> */}
           <LogRow field={`${isDailySnapshot ? '' : 'Average '}Pumped`} value={`${ouncesPumped || 0} ounce(s)`} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}% Supp (Given Breast Milk)`} value={`${Math.round((Math.round(((ouncesBreastMilkGiven || 0) / (totalSupplementedOuncesGiven || 0)) * 100) / 100) * 100)}%`} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}% Supp (Given Formula)`} value={`${Math.round((Math.round(((ouncesFormulaGiven || 0) / (totalSupplementedOuncesGiven || 0)) * 100) / 100) * 100)}%`} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}% Supp (Consumed Breast Milk)`} value={`${Math.round((Math.round(((ouncesBreastMilkConsumed || 0) / (ouncesSupplemented || 0)) * 100) / 100) * 100)}%`} />
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}% Supp (Consumed Formula)`} value={`${Math.round((Math.round(((ouncesFormulaConsumed || 0) / (ouncesSupplemented || 0)) * 100) / 100) * 100)}%`} />
         </HighlightTab>
         <HighlightTab value={tab} index={2}>
           <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} Dirty`} value={`${dirtyDiapers} diapers`} />

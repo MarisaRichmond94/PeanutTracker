@@ -9,6 +9,7 @@ export enum BottleType {
 export type BottleFeeding = {
   id: string;
   amount: number;
+  amountGiven: number | null;
   method: FeedingMethod.BOTTLE;
   notes: string | null;
   timestamp: string;

@@ -21,8 +21,10 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   const { firstName } = useProfile();
 
   // bottlefeeding only
-  const [amount, setAmount] = useState<number | undefined>();
-  const [amountErrorText, setAmountErrorText] = useState<string | undefined>();
+  const [amountConsumed, setAmountConsumed] = useState<number | undefined>();
+  const [amountGiven, setAmountGiven] = useState<number | null>(null);
+  const [amountConsumedErrorText, setAmountConsumedErrorText] = useState<string | undefined>();
+  const [amountGivenErrorText, setAmountGivenErrorText] = useState<string | undefined>();
   const [bottleType, setBottleType] = useState<BottleType>(BottleType.BREAST_MILK);
   // breastfeeding only
   const [durationErrorText, setDurationErrorText] = useState<string | undefined>();
@@ -48,14 +50,15 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
   const [startTime, setStartTime] = useState<Dayjs>(dayjs());
 
   const clearErrors = () => {
-    setAmountErrorText(undefined);
+    setAmountConsumedErrorText(undefined);
     setDurationErrorText(undefined);
     setFoodErrorText(undefined);
     setReactionErrorText(undefined);
   };
 
   const clearState = () => {
-    setAmount(undefined);
+    setAmountConsumed(undefined);
+    setAmountGiven(null);
     setBottleType(BottleType.BREAST_MILK);
     setDuration(undefined);
     setEndTime(dayjs());
@@ -84,11 +87,15 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
 
     switch (method) {
       case FeedingMethod.BOTTLE:
-        if (isNil(amount) || amount <= 0) {
-          setAmountErrorText('Missing required amount');
+        if (isNil(amountConsumed) || amountConsumed < 0) {
+          setAmountConsumedErrorText('Missing required consumed amount');
           return;
         }
-        await createNewBottleFeeding({ amount, method, notes, timestamp: startTime.toISOString(), type: bottleType });
+        if (!isNil(amountGiven) && amountGiven < 0) {
+          setAmountGivenErrorText('Missing required given amount');
+          return;
+        }
+        await createNewBottleFeeding({ amount: amountConsumed, amountGiven, method, notes, timestamp: startTime.toISOString(), type: bottleType });
         break;
       case FeedingMethod.BREAST:
         if (startTime.isAfter(endTime)) {
@@ -147,9 +154,14 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
     setIsFormExpanded(isExpanded);
   };
 
-  const updateAmount = (event: ChangeEvent<HTMLInputElement>) => {
-    setAmountErrorText(undefined);
-    setAmount(Number(event.target.value))
+  const updateAmountConsumed = (event: ChangeEvent<HTMLInputElement>) => {
+    setAmountConsumedErrorText(undefined);
+    setAmountConsumed(Number(event.target.value))
+  };
+
+  const updateAmountGiven = (event: ChangeEvent<HTMLInputElement>) => {
+    setAmountGivenErrorText(undefined);
+    setAmountGiven(Number(event.target.value))
   };
 
   const methodSelector = (
@@ -212,11 +224,26 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
             {methodSelector}
             {startTimePicker}
             <TextField
-              error={!isNil(amountErrorText)}
-              helperText={amountErrorText}
+              error={!isNil(amountGivenErrorText)}
+              helperText={amountGivenErrorText}
+              id='feeding-amount-given-field'
+              label='Amount Given In Ounces'
+              onChange={updateAmountGiven}
+              placeholder={`How much was ${firstName} offered?`}
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+              }}
+              type='number'
+              value={amountGiven}
+            />
+            <TextField
+              error={!isNil(amountConsumedErrorText)}
+              helperText={amountConsumedErrorText}
               id='feeding-amount-field'
-              label='Amount In Ounces'
-              onChange={updateAmount}
+              label='Amount Consumed In Ounces'
+              onChange={updateAmountConsumed}
               placeholder={`How much did ${firstName} drink?`}
               slotProps={{
                 inputLabel: {
@@ -224,7 +251,7 @@ export const FeedingForm = ({ onSuccess }: FeedingFormProps) => {
                 },
               }}
               type='number'
-              value={amount}
+              value={amountConsumed}
             />
             <FormControl fullWidth>
               <InputLabel id='bottle-type-select-label'>Type</InputLabel>

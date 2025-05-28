@@ -56,6 +56,7 @@ export const QuickActions = () => {
   const quickLogSupplement = async () => {
     await createNewBottleFeeding({
       amount: defaultSettings.supplementInOunces,
+      amountGiven: defaultSettings.supplementInOunces,
       method: FeedingMethod.BOTTLE,
       notes: null,
       timestamp: dayjs().toISOString(),
@@ -130,12 +131,12 @@ export const QuickActions = () => {
             </Button>
           </Tooltip>
           <Tooltip title='Log pump session'>
-            <Button onClick={quickLogSupplement} variant='contained'>
+            <Button onClick={quickLogPumpSession} variant='contained'>
               <FaPumpSoap size={20} />
             </Button>
           </Tooltip>
           <Tooltip title='Log supplement'>
-            <Button onClick={quickLogPumpSession} variant='contained'>
+            <Button onClick={quickLogSupplement} variant='contained'>
               <GiBabyBottle size={20} />
             </Button>
           </Tooltip>
