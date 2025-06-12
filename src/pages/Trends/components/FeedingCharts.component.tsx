@@ -4,8 +4,9 @@ import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-import { getBottleFeedingsInRange, getBreastFeedingsInRange, getPumpingsInRange } from '@services';
 import { BottleFeeding, BreastFeeding, Pumping } from '@models';
+import { getBottleFeedingsInRange, getBreastFeedingsInRange, getPumpingsInRange } from '@services';
+import { Period } from '@types';
 
 type BottleFeedingEntry = {
   date: string;
@@ -26,13 +27,19 @@ type PumpingEntry = {
   ounces: number;
 }
 
-export const FeedingCharts = ({ months }: { months: number }) => {
+type OuncesEntity = {
+  date: string;
+  supplemented?: number;
+  pumped?: number;
+}
+
+export const FeedingCharts = ({ period, periodType }: { period: number, periodType: Period }) => {
   const [bottleFeedingData, setBottleFeedingData] = useState<BottleFeedingEntry[]>([]);
   const [breastFeedingData, setBreastFeedingData] = useState<BreastFeedingEntry[]>([]);
   const [pumpingData, setPumpingData] = useState<PumpingEntry[]>([]);
 
   const getDataOverNMonths = async () => {
-    const start = dayjs().subtract(months, 'month').startOf('day').toISOString();
+    const start = dayjs().subtract(period, periodType).startOf('day').toISOString();
     const end = dayjs().endOf('day').toISOString();
 
     const bottleFeedingsInRange = await getBottleFeedingsInRange(start, end);
@@ -119,10 +126,39 @@ export const FeedingCharts = ({ months }: { months: number }) => {
     );
   };
 
+  const convertToPumpingVersusSupplementEntries = (pumped: PumpingEntry[], supplemented: BottleFeedingEntry[]): OuncesEntity[] => {
+    const map = new Map<string, OuncesEntity>()
+
+    for (const { date, ounces } of supplemented) {
+      if (!map.has(date)) map.set(date, { date })
+      map.get(date)!.supplemented = ounces
+    }
+
+    for (const { date, ounces } of pumped) {
+      if (!map.has(date)) map.set(date, { date })
+      map.get(date)!.pumped = ounces
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date))
+  };
+
   useEffect(() => {
     void getDataOverNMonths();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const SupplementVsPumpedChart = (
+    <ResponsiveContainer width='100%' height={300}>
+      <LineChart data={convertToPumpingVersusSupplementEntries(pumpingData, bottleFeedingData)} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='date' />
+        <YAxis label={{ value: 'Ounces', angle: -90, position: 'insideLeft' }} />
+        <Tooltip />
+        <Line type='monotone' dataKey='supplemented' stroke='#8884d8' name='supplemented' />
+        <Line type='monotone' dataKey='pumped' stroke='#82ca9d' name='pumped' />
+      </LineChart>
+    </ResponsiveContainer>
+  );
 
   return (
     <x.div display='flex' flexDirection='column' gap='15px'>
@@ -194,6 +230,9 @@ export const FeedingCharts = ({ months }: { months: number }) => {
           <Line type='monotone' dataKey='ounces' stroke='#8884d8' strokeWidth={2} dot unit='oz' />
         </LineChart>
       </ResponsiveContainer>
+      <Divider sx={{ borderColor: 'white' }} />
+      <Typography>Combined Trends</Typography>
+      {SupplementVsPumpedChart}
     </x.div>
   );
 };

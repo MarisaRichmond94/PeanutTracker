@@ -9,3 +9,8 @@ export enum Page {
   SLEEP = 'sleep',
   TRENDS = 'trends',
 }
+
+export enum Period {
+  MONTH = 'month',
+  WEEK = 'week',
+}

@@ -6,18 +6,19 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 
 import { Sleep } from '@models';
 import { getSleepsInRange } from '@services';
+import { Period } from '@types';
 
 type SleepEntity = {
   date: string;
   duration: number;
 }
 
-export const SleepCharts = ({ months }: { months: number }) => {
+export const SleepCharts = ({ period, periodType }: { period: number, periodType: Period }) => {
   const [data, setData] = useState<SleepEntity[]>([]);
 
   const getChangingsOverNMonths = async () => {
     const sleepsInRange = await getSleepsInRange(
-      dayjs().subtract(months, 'month').startOf('day').toISOString(),
+      dayjs().subtract(period, periodType).startOf('day').toISOString(),
       dayjs().endOf('day').toISOString(),
     );
     setData(converttoSleepEntities(sleepsInRange));

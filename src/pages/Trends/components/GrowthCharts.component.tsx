@@ -1,3 +1,4 @@
+import { Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
@@ -5,7 +6,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 
 import { Growth } from '@models';
 import { getGrowthsInRange } from '@services';
-import { Typography } from '@mui/material';
+import { Period } from '@types';
 
 type GrowthEntry = {
   date: string;
@@ -13,12 +14,12 @@ type GrowthEntry = {
   height?: number;
 }
 
-export const GrowthCharts = ({ months }: { months: number }) => {
+export const GrowthCharts = ({ period, periodType }: { period: number, periodType: Period }) => {
   const [data, setData] = useState<GrowthEntry[]>([]);
 
   const getGrowthOverNMonths = async () => {
     const growthsInRange = await getGrowthsInRange(
-      dayjs().subtract(months, 'month').startOf('day').toISOString(),
+      dayjs().subtract(period, periodType).startOf('day').toISOString(),
       dayjs().endOf('day').toISOString(),
     );
     setData(convertToGrowthEntries(growthsInRange));

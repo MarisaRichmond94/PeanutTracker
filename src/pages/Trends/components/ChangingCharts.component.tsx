@@ -1,3 +1,4 @@
+import { Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
@@ -5,7 +6,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 
 import { Changing, WasteType } from '@models';
 import { getChangingsInRange } from '@services';
-import { Typography } from '@mui/material';
+import { Period } from '@types';
 
 type ChangingEntry = {
   date: string;
@@ -13,12 +14,12 @@ type ChangingEntry = {
   wetCount: number;
 }
 
-export const ChangingCharts = ({ months }: { months: number }) => {
+export const ChangingCharts = ({ period, periodType }: { period: number, periodType: Period }) => {
   const [data, setData] = useState<ChangingEntry[]>([]);
 
   const getChangingsOverNMonths = async () => {
     const changingsInRange = await getChangingsInRange(
-      dayjs().subtract(months, 'month').startOf('day').toISOString(),
+      dayjs().subtract(period, periodType).startOf('day').toISOString(),
       dayjs().endOf('day').toISOString(),
     );
     setData(convertToChangingEntries(changingsInRange));
