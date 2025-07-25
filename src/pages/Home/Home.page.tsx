@@ -2,7 +2,7 @@
 import './Home.scss';
 
 import FolderOffRoundedIcon from '@mui/icons-material/FolderOffRounded';
-import { Checkbox, Divider, FormControlLabel, Typography } from '@mui/material';
+import { Alert, Checkbox, Divider, FormControlLabel, Typography } from '@mui/material';
 import { MobileDatePicker } from '@mui/x-date-pickers';
 import { x } from '@xstyled/styled-components';
 import dayjs, { Dayjs } from 'dayjs';
@@ -11,9 +11,9 @@ import { useEffect, useState } from 'react';
 
 import { EmptyState, LoadingState } from '@components';
 import { BottleFeeding, BreastFeeding, Changing, Feeding, Growth, Pumping, Sleep } from '@models';
-import { getBottleFeedingsInRange, getBreastFeedingsInRange, getChangingsInRange, getFeedingsInRange, getGrowthsInRange, getPumpingsInRange, getSleepsInRange } from '@services';
+import { getBottleFeedingsInRange, getBreastFeedingsInRange, getChangingsInRange, getFeedingsInRange, getGrowthsInRange, getMostRecentPoop, getPumpingsInRange, getSleepsInRange } from '@services';
 import { LogEntry, LogType } from '@types';
-import { getTimeOnly } from '@utils';
+import { getDaysSince, getTimeOnly } from '@utils';
 
 import { Highlights, QuickActions, TimelineView } from './components';
 
@@ -25,6 +25,7 @@ export const HomePage = () => {
   const [feedings, setFeedings] = useState<Feeding[] | undefined>();
   const [growths, setGrowths] = useState<Growth[] | undefined>();
   const [isDailySnapshot, setIsDailySnapshot] = useState<boolean>(true);
+  const [lastPoop, setLastPoop] = useState<Changing | null>(null);
   const [pumpings, setPumpings] = useState<Pumping[] | undefined>();
   const [sleeps, setSleeps] = useState<Sleep[] | undefined>();
   const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf('day'));
@@ -39,11 +40,13 @@ export const HomePage = () => {
     const growths =  await getGrowthsInRange(start, end);
     const pumpings = await getPumpingsInRange(start, end);
     const sleeps = await getSleepsInRange(start, end);
+    const mostRecentPoop = await getMostRecentPoop();
     setBottleFeedings(bottleFeedings);
     setBreastFeedings(breastFeedings);
     setChangings(changings);
     setFeedings(feedings);
     setGrowths(growths);
+    setLastPoop(mostRecentPoop);
     setPumpings(pumpings);
     setSleeps(sleeps);
   };
@@ -83,6 +86,14 @@ export const HomePage = () => {
     <>
       <x.div display='flex' flexDirection='column' gap='10px' marginBottom='15px'>
         <x.div alignItems='center' display='flex' flexDirection='column'>
+          {
+            !isNil(lastPoop) &&
+            <x.div margin='10px'>
+              <Alert variant='filled' severity='info'>
+                {`${getDaysSince(lastPoop.timestamp)} days since last poop`}
+              </Alert>
+            </x.div>
+          }
           <Typography variant='h5'><b>Activity</b></Typography>
           <x.div display='flex' flexDirection='row' gap='15px' margin='10px 25px 0 25px'>
             <MobileDatePicker

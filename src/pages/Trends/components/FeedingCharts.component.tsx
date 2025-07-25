@@ -1,4 +1,3 @@
-import { Divider, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
@@ -29,8 +28,8 @@ type PumpingEntry = {
 
 type OuncesEntity = {
   date: string;
-  supplemented?: number;
-  pumped?: number;
+  supplemented: number;
+  pumped: number;
 }
 
 export const FeedingCharts = ({ period, periodType }: { period: number, periodType: Period }) => {
@@ -130,16 +129,20 @@ export const FeedingCharts = ({ period, periodType }: { period: number, periodTy
     const map = new Map<string, OuncesEntity>()
 
     for (const { date, ounces } of supplemented) {
-      if (!map.has(date)) map.set(date, { date })
+      if (!map.has(date)) map.set(date, { date, supplemented: 0, pumped: 0 });
+      const current = map.get(date)!;
+      current.supplemented += ounces;
       map.get(date)!.supplemented = ounces
     }
 
     for (const { date, ounces } of pumped) {
-      if (!map.has(date)) map.set(date, { date })
+      if (!map.has(date)) map.set(date, { date, supplemented: 0, pumped: 0 })
+      const current = map.get(date)!;
+      current.pumped += ounces;
       map.get(date)!.pumped = ounces
     }
 
-    return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date))
+    return Array.from(map.values())
   };
 
   useEffect(() => {
@@ -147,12 +150,48 @@ export const FeedingCharts = ({ period, periodType }: { period: number, periodTy
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const timeSpentBreastfeedingChart = (
+    <ResponsiveContainer width='100%' height={300}>
+      <LineChart data={breastFeedingData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='date' />
+        <YAxis label={{ value: 'mins breast fed', angle: -90, position: 'insideLeft' }} />
+        <Tooltip />
+        <Line type='monotone' dataKey='duration' stroke='#8884d8' strokeWidth={2} dot unit=' mins' />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+
+  const ouncesPumpedChart = (
+    <ResponsiveContainer width='100%' height={300}>
+      <LineChart data={pumpingData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='date' />
+        <YAxis label={{ value: 'oz(s) pumped', angle: -90, position: 'insideLeft' }} />
+        <Tooltip />
+        <Line type='monotone' dataKey='ounces' stroke='#8884d8' strokeWidth={2} dot unit=' oz(s)' />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+
+  const ouncesSupplementedChart = (
+    <ResponsiveContainer width='100%' height={300}>
+      <LineChart data={bottleFeedingData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='date' />
+        <YAxis label={{ value: 'oz supplemented', angle: -90, position: 'insideLeft' }} />
+        <Tooltip />
+        <Line type='monotone' dataKey='ounces' stroke='#8884d8' strokeWidth={2} dot unit='oz' />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+
   const SupplementVsPumpedChart = (
     <ResponsiveContainer width='100%' height={300}>
       <LineChart data={convertToPumpingVersusSupplementEntries(pumpingData, bottleFeedingData)} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
         <CartesianGrid strokeDasharray='3 3' />
         <XAxis dataKey='date' />
-        <YAxis label={{ value: 'Ounces', angle: -90, position: 'insideLeft' }} />
+        <YAxis label={{ value: 'ounces', angle: -90, position: 'insideLeft' }} />
         <Tooltip />
         <Line type='monotone' dataKey='supplemented' stroke='#8884d8' name='supplemented' />
         <Line type='monotone' dataKey='pumped' stroke='#82ca9d' name='pumped' />
@@ -162,76 +201,9 @@ export const FeedingCharts = ({ period, periodType }: { period: number, periodTy
 
   return (
     <x.div display='flex' flexDirection='column' gap='15px'>
-      <Typography>Breast Feeding Trends</Typography>
-      <ResponsiveContainer width='100%' height={300}>
-        <LineChart data={breastFeedingData}>
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='date' />
-          <YAxis label={{ value: 'mins breast fed', angle: -90, position: 'insideLeft' }} />
-          <Tooltip />
-          <Line type='monotone' dataKey='duration' stroke='#8884d8' strokeWidth={2} dot unit=' mins' />
-        </LineChart>
-      </ResponsiveContainer>
-      <ResponsiveContainer width='100%' height={300}>
-        <LineChart data={breastFeedingData}>
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='date' />
-          <YAxis label={{ value: 'times', angle: -90, position: 'insideLeft' }} />
-          <Tooltip />
-          <Line type='monotone' dataKey='count' stroke='#8884d8' strokeWidth={2} dot unit=' daily feedings' />
-        </LineChart>
-      </ResponsiveContainer>
-      <Divider sx={{ borderColor: 'white' }} />
-      <Typography>Pumping Trends</Typography>
-      <ResponsiveContainer width='100%' height={300}>
-        <LineChart data={pumpingData}>
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='date' />
-          <YAxis label={{ value: 'mins pumped', angle: -90, position: 'insideLeft' }} />
-          <Tooltip />
-          <Line type='monotone' dataKey='duration' stroke='#8884d8' strokeWidth={2} dot unit=' mins' />
-        </LineChart>
-      </ResponsiveContainer>
-      <ResponsiveContainer width='100%' height={300}>
-        <LineChart data={pumpingData}>
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='date' />
-          <YAxis label={{ value: 'daily pumps', angle: -90, position: 'insideLeft' }} />
-          <Tooltip />
-          <Line type='monotone' dataKey='count' stroke='#8884d8' strokeWidth={2} dot unit=' pumps' />
-        </LineChart>
-      </ResponsiveContainer>
-      <ResponsiveContainer width='100%' height={300}>
-        <LineChart data={pumpingData}>
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='date' />
-          <YAxis label={{ value: 'oz(s) pumped', angle: -90, position: 'insideLeft' }} />
-          <Tooltip />
-          <Line type='monotone' dataKey='ounces' stroke='#8884d8' strokeWidth={2} dot unit=' oz(s)' />
-        </LineChart>
-      </ResponsiveContainer>
-      <Divider sx={{ borderColor: 'white' }} />
-      <Typography>Bottle Feeding Trends</Typography>
-      <ResponsiveContainer width='100%' height={300}>
-        <LineChart data={bottleFeedingData}>
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='date' />
-          <YAxis label={{ value: 'supplement count', angle: -90, position: 'insideLeft' }} />
-          <Tooltip />
-          <Line type='monotone' dataKey='count' stroke='#8884d8' strokeWidth={2} dot unit=' bottles supplemented' />
-        </LineChart>
-      </ResponsiveContainer>
-      <ResponsiveContainer width='100%' height={300}>
-        <LineChart data={bottleFeedingData}>
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='date' />
-          <YAxis label={{ value: 'oz supplemented', angle: -90, position: 'insideLeft' }} />
-          <Tooltip />
-          <Line type='monotone' dataKey='ounces' stroke='#8884d8' strokeWidth={2} dot unit='oz' />
-        </LineChart>
-      </ResponsiveContainer>
-      <Divider sx={{ borderColor: 'white' }} />
-      <Typography>Combined Trends</Typography>
+      {timeSpentBreastfeedingChart}
+      {ouncesPumpedChart}
+      {ouncesSupplementedChart}
       {SupplementVsPumpedChart}
     </x.div>
   );

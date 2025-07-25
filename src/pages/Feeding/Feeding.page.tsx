@@ -1,15 +1,16 @@
 import NoMealsRoundedIcon from '@mui/icons-material/NoMealsRounded';
 import { Divider, Typography } from '@mui/material';
 import { x } from '@xstyled/styled-components';
+import dayjs from 'dayjs';
 import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
 import { EmptyState, LoadingState } from '@components';
-import { getBottleFeedings, getBreastFeedings, getFeedings, getPumpings } from '@services';
-import { FeedingEntity } from '@types';
+import { BottleFeeding, BreastFeeding, Feeding, Pumping } from '@models';
+import { getBottleFeedingsInRange, getBreastFeedingsInRange, getFeedingsInRange, getPumpingsInRange } from '@services';
+import { FeedingEntity, Period } from '@types';
 
 import { FeedingForm, FeedingLog } from './components';
-import { BottleFeeding, BreastFeeding, Feeding, Pumping } from '@models';
 
 export const FeedingPage = () => {
   const [bottleFeedings, setBottleFeedings] = useState<BottleFeeding[] | undefined>();
@@ -17,15 +18,17 @@ export const FeedingPage = () => {
   const [feedings, setFeedings] = useState<Feeding[] | undefined>();
   const [pumpings, setPumpings] = useState<Pumping[] | undefined>();
 
-  const loadAllFeedings = async () => {
-    const allBottleFeedings = await getBottleFeedings();
-    const allBreastFeedings = await getBreastFeedings();
-    const allFeedings = await getFeedings();
-    const allPumpings = await getPumpings();
-    setBottleFeedings(allBottleFeedings);
-    setBreastFeedings(allBreastFeedings);
-    setFeedings(allFeedings);
-    setPumpings(allPumpings);
+  const getDataOverNMonths = async () => {
+    const start = dayjs().subtract(2, Period.WEEK).startOf('day').toISOString();
+    const end = dayjs().endOf('day').toISOString();
+    const bottleFeedingsInRange = await getBottleFeedingsInRange(start, end);
+    const breastFeedingsInRange = await getBreastFeedingsInRange(start, end);
+    const pumpingsInRange = await getPumpingsInRange(start, end);
+    const allFeedingsInRange = await getFeedingsInRange(start, end);
+    setBottleFeedings(bottleFeedingsInRange);
+    setBreastFeedings(breastFeedingsInRange);
+    setFeedings(allFeedingsInRange);
+    setPumpings(pumpingsInRange);
   };
 
   const getCombinedFeedings = (): FeedingEntity[] => {
@@ -40,7 +43,7 @@ export const FeedingPage = () => {
     return allFeedings;
   };
 
-  useEffect(() => { void loadAllFeedings(); }, []);
+  useEffect(() => { void getDataOverNMonths(); }, []);
 
   const renderFeedingLogs = () => {
     const combinedFeedings = getCombinedFeedings();
@@ -48,14 +51,14 @@ export const FeedingPage = () => {
     if (isEmpty(combinedFeedings)) return <EmptyState icon={<NoMealsRoundedIcon />} type='Feeding' />;
     return (
       <x.div display='flex' flexDirection='column' gap='15px'>
-        {combinedFeedings.map((feeding, index) => <FeedingLog key={`feeding-${index}`} feeding={feeding} onSuccess={loadAllFeedings} />)}
+        {combinedFeedings.map((feeding, index) => <FeedingLog key={`feeding-${index}`} feeding={feeding} onSuccess={getDataOverNMonths} />)}
       </x.div>
     );
   };
 
   return (
     <x.div id='feeding-page'>
-      <FeedingForm onSuccess={loadAllFeedings} />
+      <FeedingForm onSuccess={getDataOverNMonths} />
       <x.div margin='20px 0'>
         <x.div display='flex' flexDirection='column' gap='10px' marginBottom='15px'>
           <x.div display='flex' justifyContent='center'>

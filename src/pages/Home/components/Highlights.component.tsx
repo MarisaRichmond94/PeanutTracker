@@ -1,28 +1,20 @@
 import { ExpandMoreRounded } from '@mui/icons-material';
-import AirlineSeatFlatRoundedIcon from '@mui/icons-material/AirlineSeatFlatRounded';
-import BabyChangingStationRoundedIcon from '@mui/icons-material/BabyChangingStationRounded';
-import GrassRoundedIcon from '@mui/icons-material/GrassRounded';
-import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
-import SanitizerRoundedIcon from '@mui/icons-material/SanitizerRounded';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Divider, Tab, Tabs, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Divider, Typography } from '@mui/material';
 import dayjs from 'dayjs';
-import { isEmpty, isNil } from 'lodash';
 import { useEffect, useState } from 'react';
 
 import { LogRow } from '@components';
-import { useProfile } from '@contexts';
-import { BottleFeeding, BreastFeeding, Changing, Growth, Pumping, Sleep } from '@models';
+import { BottleFeeding, BreastFeeding, Changing, Pumping } from '@models';
 import { LogEntry, LogType } from '@types';
-import { formatLbsToLbsOz, formatMinutesToHoursAndMinutes } from '@utils';
 
-import { calculateDailyBottleFeedingState, calculateDailyBreastFeedingState, calculateDailyChangingState, calculateDailyPumpingState, calculateDailySleepState } from '../utils';
+import { calculateDailyBottleFeedingState, calculateDailyBreastFeedingState, calculateDailyChangingState, calculateDailyPumpingState } from '../utils';
 
-const TARGET_SUPPLEMENT_AMOUNT = 24;
+// const TARGET_SUPPLEMENT_AMOUNT = 24;
 
-type Change = {
-  difference: number; // absolute value of change (positive number)
-  type: 'Gained' | 'Lost' | 'N/A';
-};
+// type Change = {
+//   difference: number; // absolute value of change (positive number)
+//   type: 'Gained' | 'Lost' | 'N/A';
+// };
 
 type HighlightsProps = {
   isDailySnapshot: boolean;
@@ -30,34 +22,34 @@ type HighlightsProps = {
 }
 
 export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
-  const { firstName } = useProfile();
+  // const { firstName } = useProfile();
 
   const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
   // calculated state
-  const [babySleepTime, setBabySleepTime] = useState<number>(); // number of minutes spent sleeping
+  // const [babySleepTime, setBabySleepTime] = useState<number>(); // number of minutes spent sleeping
   const [breastFeedings, setBreastFeedings] = useState<number>(); // number of breast feeding sessions in time period
-  const [dadSleepTime, setDadSleepTime] = useState<number>(); // number of minutes spent sleeping
-  const [dirtyDiapers, setDirtyDiapers] = useState<number>(); // total number of dirty diapers in time period
-  const [momSleepTime, setMomSleepTime] = useState<number>(); // number of minutes spent sleeping
-  const [ouncesBreastMilkConsumed, setOuncesBreastMilkConsumed] = useState<number>();
-  const [ouncesBreastMilkGiven, setOuncesBreastMilkGiven] = useState<number>();
-  const [ouncesFormulaConsumed, setOuncesFormulaConsumed] = useState<number>();
-  const [ouncesFormulaGiven, setOuncesFormulaGiven] = useState<number>();
+  // const [dadSleepTime, setDadSleepTime] = useState<number>(); // number of minutes spent sleeping
+  // const [dirtyDiapers, setDirtyDiapers] = useState<number>(); // total number of dirty diapers in time period
+  // const [momSleepTime, setMomSleepTime] = useState<number>(); // number of minutes spent sleeping
+  // const [ouncesBreastMilkConsumed, setOuncesBreastMilkConsumed] = useState<number>();
+  // const [ouncesBreastMilkGiven, setOuncesBreastMilkGiven] = useState<number>();
+  // const [ouncesFormulaConsumed, setOuncesFormulaConsumed] = useState<number>();
+  // const [ouncesFormulaGiven, setOuncesFormulaGiven] = useState<number>();
   const [ouncesPumped, setOuncesPumped] = useState<number>(); // total milk pumped in time period shown in ounces
   const [ouncesSupplemented, setOuncesSupplemented] = useState<number>(); // ounces of formula or breast milk supplemented in time period
-  const [totalSupplementedOuncesGiven, setTotalSupplementedOuncesGiven] = useState<number>(); // ounces of formula or breast milk attempted to supplement in time period (regardless of consumption)
+  // const [totalSupplementedOuncesGiven, setTotalSupplementedOuncesGiven] = useState<number>(); // ounces of formula or breast milk attempted to supplement in time period (regardless of consumption)
   // const [ouncesTransferred, setOuncesTransferred] = useState<number>(); // ounces of breast milk transferred in time period
   const [pumpSessions, setPumpSessions] = useState<number>(); // number of pump sessions in time period
   // const [pumpTime, setPumpTime] = useState<number>(); // time spent pumping in time period shown in hours and minutes
-  const [supplementations, setSupplementations] = useState<number>(); // total number of bottles given in time period
-  const [totalDiapers, setTotalDiapers] = useState<number>(); // total number of diapers in time period
-  const [weightChange, setWeightChange] = useState<string>(); // difference in first and last weight in time period
+  // const [supplementations, setSupplementations] = useState<number>(); // total number of bottles given in time period
+  // const [totalDiapers, setTotalDiapers] = useState<number>(); // total number of diapers in time period
+  // const [weightChange, setWeightChange] = useState<string>(); // difference in first and last weight in time period
   const [wetDiapers, setWetDiapers] = useState<number>(); // total number of wet diapers in time period
-  const [tab, setTab] = useState(0);
+  // const [tab, setTab] = useState(0);
 
-  const handleTabChange = (_: React.SyntheticEvent, newTab: number) => {
-    setTab(newTab);
-  };
+  // const handleTabChange = (_: React.SyntheticEvent, newTab: number) => {
+  //   setTab(newTab);
+  // };
 
   const calculateBreastFeedingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.BREAST_FEEDING) as BreastFeeding[];
@@ -68,15 +60,15 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
 
   const calculateBottleFeedingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.BOTTLE_FEEDING) as BottleFeeding[];
-    const { ouncesConsumed, ouncesGiven, total, ouncesBreastMilkConsumed: breastMilkConsumed, ouncesBreastMilkGiven: breastMilkGiven, ouncesFormulaConsumed: formulaConsumed, ouncesFormulaGiven: formulaGiven } = calculateDailyBottleFeedingState(filteredLogs);
+    const { ouncesConsumed } = calculateDailyBottleFeedingState(filteredLogs);
     const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
-    setSupplementations(Math.round((total / totalDays) * 100) / 100);
+    // setSupplementations(Math.round((total / totalDays) * 100) / 100);
     setOuncesSupplemented(Math.round((ouncesConsumed / totalDays) * 100) / 100);
-    setOuncesBreastMilkConsumed(breastMilkConsumed);
-    setOuncesBreastMilkGiven(breastMilkGiven);
-    setOuncesFormulaConsumed(formulaConsumed);
-    setOuncesFormulaGiven(formulaGiven);
-    setTotalSupplementedOuncesGiven(Math.round((ouncesGiven / totalDays) * 100) / 100);
+    // setOuncesBreastMilkConsumed(breastMilkConsumed);
+    // setOuncesBreastMilkGiven(breastMilkGiven);
+    // setOuncesFormulaConsumed(formulaConsumed);
+    // setOuncesFormulaGiven(formulaGiven);
+    // setTotalSupplementedOuncesGiven(Math.round((ouncesGiven / totalDays) * 100) / 100);
   };
 
   const calculatePumpingState = () => {
@@ -89,49 +81,49 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
 
   const calculateChangingState = () => {
     const filteredLogs = logs.filter((log) => log.logType === LogType.CHANGING) as Changing[];
-    const { dirty, total, wet } = calculateDailyChangingState(filteredLogs);
+    const { wet } = calculateDailyChangingState(filteredLogs);
     const totalDays = isDailySnapshot ? 1 : new Set(filteredLogs.map(log => dayjs(log.timestamp).format('YYYY-MM-DD'))).size;
-    setDirtyDiapers(Math.round((dirty / totalDays) * 100) / 100);
-    setTotalDiapers(Math.round((total / totalDays) * 100) / 100);
+    // setDirtyDiapers(Math.round((dirty / totalDays) * 100) / 100);
+    // setTotalDiapers(Math.round((total / totalDays) * 100) / 100);
     setWetDiapers(Math.round((wet / totalDays) * 100) / 100);
   };
 
-  const calculateSleepState = () => {
-    const filteredLogs = logs.filter((log) => log.logType === LogType.SLEEP) as Sleep[];
-    const { babySleepDuration, dadSleepDuration, momSleepDuration } = calculateDailySleepState(filteredLogs);
-    setBabySleepTime(babySleepDuration);
-    setDadSleepTime(dadSleepDuration);
-    setMomSleepTime(momSleepDuration);
-  };
+  // const calculateSleepState = () => {
+  //   const filteredLogs = logs.filter((log) => log.logType === LogType.SLEEP) as Sleep[];
+  //   const { babySleepDuration, dadSleepDuration, momSleepDuration } = calculateDailySleepState(filteredLogs);
+  //   setBabySleepTime(babySleepDuration);
+  //   setDadSleepTime(dadSleepDuration);
+  //   setMomSleepTime(momSleepDuration);
+  // };
 
-  const determineDifference = (start: number, end: number): Change => {
-    if (end > start) {
-      return { difference: end - start, type: 'Gained' };
-    } else if (end < start) {
-      return { difference: start - end, type: 'Lost' };
-    } else {
-      return { difference: 0, type: 'N/A' };
-    }
-  };
+  // const determineDifference = (start: number, end: number): Change => {
+  //   if (end > start) {
+  //     return { difference: end - start, type: 'Gained' };
+  //   } else if (end < start) {
+  //     return { difference: start - end, type: 'Lost' };
+  //   } else {
+  //     return { difference: 0, type: 'N/A' };
+  //   }
+  // };
 
-  const calculateGrowthState = () => {
-    const filteredLogs = logs.filter((log) => log.logType === LogType.GROWTH) as Growth[];
-    const growthWithWeight = filteredLogs.filter((log) => !isNil(log.weight));
-    if (!isEmpty(growthWithWeight) && growthWithWeight.length >= 2) {
-      const last = growthWithWeight[0];
-      const first = growthWithWeight[growthWithWeight.length - 1];
-      const { difference, type } = determineDifference(first.weight!, last.weight!);
-      setWeightChange(`${type} ${formatLbsToLbsOz(difference)}`);
-    }
-  };
+  // const calculateGrowthState = () => {
+  //   const filteredLogs = logs.filter((log) => log.logType === LogType.GROWTH) as Growth[];
+  //   const growthWithWeight = filteredLogs.filter((log) => !isNil(log.weight));
+  //   if (!isEmpty(growthWithWeight) && growthWithWeight.length >= 2) {
+  //     const last = growthWithWeight[0];
+  //     const first = growthWithWeight[growthWithWeight.length - 1];
+  //     const { difference, type } = determineDifference(first.weight!, last.weight!);
+  //     setWeightChange(`${type} ${formatLbsToLbsOz(difference)}`);
+  //   }
+  // };
 
   const calculateState = () => {
     calculateBreastFeedingState();
     calculateBottleFeedingState();
     calculatePumpingState();
     calculateChangingState();
-    calculateSleepState();
-    calculateGrowthState();
+    // calculateSleepState();
+    // calculateGrowthState();
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -148,6 +140,12 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
         <Divider sx={{ borderColor: 'white' }} />
       </AccordionSummary>
       <AccordionDetails>
+        <LogRow field='Supplemented' value={`${ouncesSupplemented || 0} ounce(s)`} />
+        <LogRow field='Pumped' value={`${ouncesPumped || 0} ounce(s)`} />
+        <LogRow field='Sessions' value={`${(breastFeedings || 0) + (pumpSessions || 0)} session(s)`} />
+        <LogRow field='Wet Diapers' value={`${wetDiapers} diaper(s)`} />
+      </AccordionDetails>
+      {/* <AccordionDetails>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs
             value={tab}
@@ -164,21 +162,21 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
           </Tabs>
         </Box>
         <HighlightTab value={tab} index={0}>
-          {/* <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Breast)`} value={`${breastFeedings} feedings`} /> */}
-          {/* <LogRow field={`Transferred${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} /> */}
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Breast)`} value={`${breastFeedings} feedings`} />
+          <LogRow field={`Transferred${isDailySnapshot ? '' : ' (Average)'}`} value={isNil(ouncesTransferred) ? 'Unknown' : `${ouncesTransferred} ounce(s)`} />
           <LogRow field={isDailySnapshot ? 'Total' : 'Average'} value={`${supplementations} supplement(s)`} />
           <LogRow field={`${isDailySnapshot ? '' : 'Average '}Consumed`} value={`${ouncesSupplemented || 0} ounce(s)`} />
           <LogRow field={`${isDailySnapshot ? '' : 'Average '}Given`} value={`${totalSupplementedOuncesGiven} ounce(s)`} />
           {isDailySnapshot && <LogRow field='Remaining' value={`${TARGET_SUPPLEMENT_AMOUNT - (totalSupplementedOuncesGiven || 0)} ounce(s)`} />}
           {isDailySnapshot && <LogRow field='% of Target Supp' value={`${Math.round((Math.round((((totalSupplementedOuncesGiven || 0) / TARGET_SUPPLEMENT_AMOUNT) * 100)) / 100) * 100)}%`} />}
           <LogRow field='% of Supp(s) Consumed' value={`${Math.round((Math.round((((ouncesSupplemented || 0) / (totalSupplementedOuncesGiven || 0)) * 100)) / 100) * 100)}%`} />
-          {/* <LogRow field={`${isDailySnapshot ? '' : 'Average '}Consumed`} value={`${(ouncesSupplemented || 0) + (ouncesTransferred || 0)} ounce(s)`} /> */}
+          <LogRow field={`${isDailySnapshot ? '' : 'Average '}Consumed`} value={`${(ouncesSupplemented || 0) + (ouncesTransferred || 0)} ounce(s)`} />
         </HighlightTab>
         <HighlightTab value={tab} index={1}>
           <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Pump)`} value={`${pumpSessions} session(s)`} />
           <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} (Breast)`} value={`${breastFeedings} session(s)`} />
           <LogRow field='Combined' value={`${(breastFeedings || 0) + (pumpSessions || 0)} session(s)`} />
-          {/* <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} Time`} value={formatMinutesToHoursAndMinutes(pumpTime || 0)} /> */}
+          <LogRow field={`${isDailySnapshot ? 'Total' : 'Average'} Time`} value={formatMinutesToHoursAndMinutes(pumpTime || 0)} />
           <LogRow field={`${isDailySnapshot ? '' : 'Average '}Pumped`} value={`${ouncesPumped || 0} ounce(s)`} />
           <LogRow field={`${isDailySnapshot ? '' : 'Average '}% Supp (Given Breast Milk)`} value={`${Math.round((Math.round(((ouncesBreastMilkGiven || 0) / (totalSupplementedOuncesGiven || 0)) * 100) / 100) * 100)}%`} />
           <LogRow field={`${isDailySnapshot ? '' : 'Average '}% Supp (Given Formula)`} value={`${Math.round((Math.round(((ouncesFormulaGiven || 0) / (totalSupplementedOuncesGiven || 0)) * 100) / 100) * 100)}%`} />
@@ -201,23 +199,23 @@ export const Highlights = ({ isDailySnapshot, logs }: HighlightsProps) => {
             <LogRow field='Weight Change' value={weightChange || 'N/A'} />
           </HighlightTab>
         }
-      </AccordionDetails>
+      </AccordionDetails> */}
     </Accordion>
   );
 };
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
+// interface TabPanelProps {
+//   children?: React.ReactNode;
+//   index: number;
+//   value: number;
+// }
 
-const HighlightTab = ({ children, value, index }: TabPanelProps) => (
-  <div
-    role='tabpanel'
-    hidden={value !== index}
-    id={`simple-tabpanel-${index}`}
-  >
-    {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-  </div>
-);
+// const HighlightTab = ({ children, value, index }: TabPanelProps) => (
+//   <div
+//     role='tabpanel'
+//     hidden={value !== index}
+//     id={`simple-tabpanel-${index}`}
+//   >
+//     {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+//   </div>
+// );

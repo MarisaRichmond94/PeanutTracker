@@ -1,7 +1,7 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, limit, orderBy, query, updateDoc, where } from 'firebase/firestore';
 
 import { db } from '@firebase';
-import { Changing } from '@models';
+import { Changing, WasteType } from '@models';
 
 const changingCollection = collection(db, 'changings');
 
@@ -22,6 +22,19 @@ export const getChangings = async (): Promise<Changing[]> => {
     throw error;
   }
 };
+
+export const getMostRecentPoop = async (): Promise<Changing | null> => {
+  const q = query(changingCollection, where('type', 'in', [WasteType.DIRTY, WasteType.BOTH]), orderBy('timestamp', 'desc'), limit(1));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) return null;
+
+  const doc = snapshot.docs[0];
+  return {
+    id: doc.id,
+    ...doc.data(),
+  } as Changing;
+}
 
 export const getChangingsInRange = async (startTimestamp: string, endTimestamp: string): Promise<Changing[]> => {
 

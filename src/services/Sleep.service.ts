@@ -27,7 +27,7 @@ export const getSleeps = async (): Promise<Sleep[]> => {
 };
 
 export const getSleepsInRange = async (startTimestamp: string, endTimestamp: string): Promise<Sleep[]> => {
-  const q = query(sleepCollection, where('startTime', '>=', startTimestamp), where('startTime', '<=', endTimestamp), orderBy('startTime', 'desc'));
+  const q = query(sleepCollection, where('endTime', '>=', startTimestamp), where('endTime', '<=', endTimestamp), orderBy('endTime', 'desc'));
   const snapshot = await getDocs(q);
 
   return snapshot.docs.map((doc) => ({

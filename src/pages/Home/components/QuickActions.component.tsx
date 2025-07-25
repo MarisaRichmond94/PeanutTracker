@@ -15,12 +15,12 @@ import { createNewBottleFeeding, createNewBreastFeeding, createNewChanging, crea
 import { FeedingMethod } from '@types';
 
 const BASE_DEFAULTS = {
-  pumpTimeInMinutes: 10,
+  pumpTimeInMinutes: 40,
   sleepLocation: SleepLocation.CONTACT_NAP,
-  supplementInOunces: 2,
-  supplementType: BottleType.BREAST_MILK,
-  wasteColor: WasteColor.YELLOW,
-  wasteConsistency: WasteConsistency.MUCOUSY,
+  supplementInOunces: 4,
+  supplementType: BottleType.FORMULA,
+  wasteColor: WasteColor.NOT_APPLICABLE,
+  wasteConsistency: WasteConsistency.NOT_APPLICABLE,
 }
 
 export const QuickActions = () => {

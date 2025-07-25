@@ -11,3 +11,15 @@ export const formatMinutesToHoursAndMinutes = (totalMinutes: number): string => 
 
   return hoursPart || minutesPart || '0 minute(s)';
 };
+
+export const getDaysSince = (isoTimestamp: string): number => {
+  const then = new Date(isoTimestamp);
+  const now = new Date();
+
+  const diffMs = now.getTime() - then.getTime();
+
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+};
+
