@@ -1,5 +1,6 @@
 export enum Page {
   CHANGING = 'changing',
+  CHORE = 'chore',
   FEEDING = 'feeding',
   GROWTH = 'growth',
   HOME = 'home',

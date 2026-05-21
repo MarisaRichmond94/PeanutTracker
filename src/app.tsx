@@ -1,6 +1,6 @@
 import { Layout } from '@components';
 import { useGlobal } from '@contexts';
-import { ChangingPage, FeedingPage, GrowthPage, HomePage, LandingPage, NotesPage, ProfilePage, SleepPage, TrendsPage } from '@pages';
+import { ChangingPage, ChorePage, FeedingPage, GrowthPage, HomePage, LandingPage, NotesPage, ProfilePage, SleepPage, TrendsPage } from '@pages';
 import { Page } from '@types';
 
 export const App = () => {
@@ -9,6 +9,7 @@ export const App = () => {
   const getPage = () => {
     switch (page) {
       case Page.CHANGING: return <ChangingPage />;
+      case Page.CHORE: return <ChorePage />;
       case Page.FEEDING: return <FeedingPage />;
       case Page.GROWTH: return <GrowthPage />;
       case Page.HOME: return <HomePage />;

@@ -1,4 +1,5 @@
 export * from './Changing';
+export * from './Chores';
 export * from './Feeding';
 export * from './Growth';
 export * from './Home';

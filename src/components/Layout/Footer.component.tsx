@@ -1,5 +1,4 @@
-import AirlineSeatFlatRoundedIcon from '@mui/icons-material/AirlineSeatFlatRounded';
-import BabyChangingStationRoundedIcon from '@mui/icons-material/BabyChangingStationRounded';
+import CleaningServicesIcon from '@mui/icons-material/CleaningServices';import BabyChangingStationRoundedIcon from '@mui/icons-material/BabyChangingStationRounded';
 import GrassRoundedIcon from '@mui/icons-material/GrassRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
@@ -14,7 +13,7 @@ export const Footer = () => {
     <S.LayoutComponentContainer id='app-footer'>
       <IconWithText icon={<HomeRoundedIcon />} page={Page.HOME} text='Home' />
       <IconWithText icon={<LocalDiningRoundedIcon />} page={Page.FEEDING} text='Feeding' />
-      <IconWithText icon={<AirlineSeatFlatRoundedIcon />} page={Page.SLEEP} text='Sleep' />
+      <IconWithText icon={<CleaningServicesIcon />} page={Page.CHORE} text='Cleaning' />
       <IconWithText icon={<BabyChangingStationRoundedIcon />} page={Page.CHANGING} text='Changing' />
       <IconWithText icon={<GrassRoundedIcon />} page={Page.GROWTH} text='Growth' />
     </S.LayoutComponentContainer>
